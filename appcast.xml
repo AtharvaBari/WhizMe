@@ -10,7 +10,7 @@
             <sparkle:shortVersionString>0.1.4</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <enclosure url="https://github.com/AtharvaBari/WhizMe/releases/download/v0.1.4/WhizMe-v0.1.4.dmg" length="2458751" type="application/octet-stream" sparkle:edSignature="gfwqEz8MNHNMNLxJwAy2YMC7BRGouEhaHNp9uYMzXFjNOExy7paxwtTj5eS2ACWYoYdyT62BlzSQaQuWaDbwDQ=="/>
+            <enclosure url="https://github.com/AtharvaBari/WhizMe/releases/download/v0.1.4/WhizMe-v0.1.4.dmg" length="1746163" type="application/octet-stream" sparkle:edSignature="M2IY5NKdf58NFP7zwVbLcMKd7NdH/g7GCqwnBXWAqHIyXmRCRCvlyDPEpfKLRTa8oaD57YB47jK++PxzArPjCA=="/>
             <sparkle:deltas>
                 <enclosure url="https://github.com/AtharvaBari/WhizMe/releases/download/v0.1.4/WhizMe5-4.delta" sparkle:deltaFrom="4" length="12294" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977712" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="a4RA7envJZk6zqiuowmE0zFGWtNd9qwb+JoTQn3schnPoXZ4sZ1oH35ChPiLDrVnrsQN65vGkLDCgwQdUg1kCg=="/>
             </sparkle:deltas>
