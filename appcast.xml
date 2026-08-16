@@ -3,6 +3,19 @@
     <channel>
         <title>WhizMe</title>
         <item>
+            <title>0.1.2</title>
+            <pubDate>Sun, 16 Aug 2026 13:01:24 +0530</pubDate>
+            <link>https://github.com/AtharvaBari/WhizMe</link>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://github.com/AtharvaBari/WhizMe/releases/download/v0.1.2/WhizMe-0.1.2.dmg" length="2076513" type="application/octet-stream" sparkle:edSignature="NYL7H9YYoaYWaa2RMAIKJgD1YNIyq0FPz6zlsTC6hEjYLNAc2dMp9pCV63Dq1/++6il3j0dJwEXfDwaDzP5MAA=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/AtharvaBari/WhizMe/releases/download/v0.1.2/WhizMe3-2.delta" sparkle:deltaFrom="2" length="10658" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977712" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="xRLZ2YLFlIcbTnb8g4mtrdikNYvPjCitaDCep52y4dkzT24Jat8lVzoYs6ESmXwFRqhoKJVa35FUoEtpzn2YCg=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>0.1.1</title>
             <pubDate>Sun, 16 Aug 2026 12:50:17 +0530</pubDate>
             <link>https://github.com/AtharvaBari/WhizMe</link>
