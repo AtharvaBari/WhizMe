@@ -18,8 +18,8 @@ APP="$BUILD_DIR/WhizMe.app"
 
 BUNDLE_ID="me.whiz.app"
 EXECUTABLE="WhizMe"
-MARKETING_VERSION="0.1.0"
-BUILD_VERSION="1"
+MARKETING_VERSION="0.1.1"
+BUILD_VERSION="2"
 DEPLOYMENT_TARGET="14.0"
 
 SDK="$(xcrun --show-sdk-path --sdk macosx)"
