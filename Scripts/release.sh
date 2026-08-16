@@ -63,18 +63,34 @@ rm -f "$ARCHIVE"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE" "${UNPACK:-}"; hdiutil detach "$MOUNT" -quiet 2>/dev/null || true' EXIT
 
-# The .app sits at the volume root — Sparkle looks for it there. The Applications
-# symlink beside it is what makes the same file a sane drag-to-install for humans.
+# The .app sits at the volume root — Sparkle looks for it there.
 cp -R "$ROOT/build/WhizMe.app" "$STAGE/WhizMe.app"
-ln -s /Applications "$STAGE/Applications"
 
 # No license agreement on this image, ever: Sparkle cannot mount a DMG that puts up
 # one, so adding it would break every update.
-hdiutil create \
-  -volname "WhizMe" \
-  -srcfolder "$STAGE" \
-  -ov -format UDZO \
-  "$ARCHIVE" >/dev/null
+if command -v create-dmg >/dev/null 2>&1; then
+  echo "    Using create-dmg to style the DMG background"
+  create-dmg \
+    --volname "WhizMe" \
+    --background "$ROOT/../Brand/bg.png" \
+    --window-pos 200 120 \
+    --window-size 600 400 \
+    --icon-size 128 \
+    --icon "WhizMe.app" 150 200 \
+    --hide-extension "WhizMe.app" \
+    --app-drop-link 450 200 \
+    --no-internet-enable \
+    "$ARCHIVE" \
+    "$STAGE" >/dev/null 2>&1
+else
+  echo "    create-dmg not found, falling back to basic hdiutil (no background)"
+  ln -s /Applications "$STAGE/Applications"
+  hdiutil create \
+    -volname "WhizMe" \
+    -srcfolder "$STAGE" \
+    -ov -format UDZO \
+    "$ARCHIVE" >/dev/null
+fi
 
 echo "==> Verifying the packaged copy still validates"
 MOUNT="$(mktemp -d)"
