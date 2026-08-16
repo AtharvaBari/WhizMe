@@ -1,0 +1,82 @@
+name: Appcast
+
+# appcast.xml is the one file in this repository that can break the shipped app.
+# It tells Sparkle where the update is and how large it should be. Both the upload and
+# the version bump are manual steps, so the failure modes are the human ones:
+#
+#   - the .dmg was never uploaded to the release
+#   - the release tag is spelled differently than the URL in the feed
+#   - the .dmg was rebuilt after the feed was generated, so the size no longer matches
+#
+# Every one of those breaks updates for every user, silently — Sparkle finds an update,
+# fails to download it, and says nothing. This job is the thing that notices.
+
+on:
+  release:
+    types: [published]
+  push:
+    branches: [main]
+    paths: ["appcast.xml"]
+  workflow_dispatch:
+  schedule:
+    # Weekly, because a release asset can be deleted or renamed long after it was
+    # published and nothing else would ever re-check it.
+    - cron: "0 9 * * 1"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Every enclosure resolves and matches its declared length
+        run: |
+          python3 - <<'PY'
+          import sys, urllib.request, xml.etree.ElementTree as ET
+
+          NS = {"sparkle": "http://www.andymatuschak.org/xml-namespaces/sparkle"}
+          root = ET.parse("appcast.xml").getroot()
+          items = root.findall(".//item")
+          if not items:
+              sys.exit("appcast.xml contains no <item> — Sparkle would never offer an update.")
+
+          failures = []
+          for item in items:
+              version = item.findtext("sparkle:shortVersionString", default="?", namespaces=NS)
+              enc = item.find("enclosure")
+              if enc is None:
+                  failures.append(f"{version}: no <enclosure>")
+                  continue
+
+              url = enc.get("url")
+              declared = enc.get("length")
+
+              # HEAD, following redirects: GitHub serves release assets via a redirect
+              # to its object storage, so the first response is a 302, not the file.
+              req = urllib.request.Request(url, method="HEAD")
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as resp:
+                      actual = resp.headers.get("Content-Length")
+                      status = resp.status
+              except Exception as e:
+                  failures.append(f"{version}: {url} unreachable — {e}")
+                  continue
+
+              if status != 200:
+                  failures.append(f"{version}: HTTP {status} for {url}")
+              elif declared != actual:
+                  failures.append(
+                      f"{version}: length mismatch — feed says {declared}, server says {actual}. "
+                      "The archive was probably rebuilt after the feed was generated."
+                  )
+              else:
+                  print(f"OK  {version}  {actual} bytes  {url}")
+
+          if failures:
+              for f in failures:
+                  print(f"::error::{f}")
+              sys.exit(1)
+
+          print(f"\nAll {len(items)} enclosure(s) verified.")
+          PY

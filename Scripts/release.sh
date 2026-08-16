@@ -5,12 +5,16 @@
 # Usage:  ./Scripts/release.sh 0.2.0
 #
 # Output lands in dist/:
-#     WhizMe-<version>.zip   upload to the GitHub release tagged v<version>
-#     appcast.xml            copy to the website so it serves at SUFeedURL
+#     WhizMe-<version>.dmg   upload to the GitHub release tagged v<version>
+#     appcast.xml            commit at the repo root; Sparkle reads it from raw.githubusercontent
 #
-# The appcast is regenerated from every archive in dist/, not just the new one, so
-# older entries survive. Keep dist/ around, or Sparkle users on an old version lose
-# the entry describing the hop they need.
+# One .dmg serves both jobs: the file a new user opens, and the file Sparkle downloads
+# to update an existing install.
+#
+# The appcast is regenerated from every archive in dist/, not just the new one. Sparkle
+# always offers the newest item a client qualifies for, so older entries matter only
+# when a newer release raises the minimum macOS version and an older one is still the
+# right answer for someone. Each entry is rewritten below to point at its own tag.
 #
 set -euo pipefail
 
@@ -48,21 +52,37 @@ fi
 "$ROOT/Scripts/build.sh" release
 
 mkdir -p "$DIST"
-ARCHIVE="$DIST/WhizMe-${VERSION}.zip"
+ARCHIVE="$DIST/WhizMe-${VERSION}.dmg"
 
+# One artifact, used for both jobs: the download a new user opens, and the file
+# Sparkle fetches to update an existing install. Shipping a separate .zip for updates
+# means two uploads per release and two chances to mismatch the appcast — and when
+# they do mismatch, updates fail silently for everyone.
 echo "==> Packaging $ARCHIVE"
 rm -f "$ARCHIVE"
-# ditto, not `zip`: it is the only archiver that preserves the symlink farm and the
-# extended attributes a signed framework needs. A `zip -r` archive of this bundle
-# arrives with a broken signature.
-ditto -c -k --sequesterRsrc --keepParent "$ROOT/build/WhizMe.app" "$ARCHIVE"
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE" "${UNPACK:-}"; hdiutil detach "$MOUNT" -quiet 2>/dev/null || true' EXIT
+
+# The .app sits at the volume root — Sparkle looks for it there. The Applications
+# symlink beside it is what makes the same file a sane drag-to-install for humans.
+cp -R "$ROOT/build/WhizMe.app" "$STAGE/WhizMe.app"
+ln -s /Applications "$STAGE/Applications"
+
+# No license agreement on this image, ever: Sparkle cannot mount a DMG that puts up
+# one, so adding it would break every update.
+hdiutil create \
+  -volname "WhizMe" \
+  -srcfolder "$STAGE" \
+  -ov -format UDZO \
+  "$ARCHIVE" >/dev/null
 
 echo "==> Verifying the packaged copy still validates"
-UNPACK="$(mktemp -d)"
-trap 'rm -rf "$UNPACK"' EXIT
-ditto -x -k "$ARCHIVE" "$UNPACK"
-codesign --verify --deep --strict "$UNPACK/WhizMe.app" \
+MOUNT="$(mktemp -d)"
+hdiutil attach "$ARCHIVE" -mountpoint "$MOUNT" -nobrowse -quiet
+codesign --verify --deep --strict "$MOUNT/WhizMe.app" \
   && echo "    OK: signature survived packaging."
+hdiutil detach "$MOUNT" -quiet
+MOUNT=""
 
 echo "==> Generating appcast (signs each archive with the EdDSA key in your keychain)"
 "$SPARKLE_BIN/generate_appcast" \
@@ -70,6 +90,38 @@ echo "==> Generating appcast (signs each archive with the EdDSA key in your keyc
   --link "https://github.com/AtharvaBari/WhizMe" \
   -o "$DIST/appcast.xml" \
   "$DIST"
+
+echo "==> Correcting per-entry download URLs"
+# generate_appcast applies ONE --download-url-prefix to every archive it finds, but
+# GitHub stores each release's assets under its own tag. So any entry older than the
+# version being released comes out pointing at the NEW tag, where its file does not
+# exist — a silent 404 for anyone that entry was meant to serve.
+#
+# Rewrite each enclosure to the tag matching its own version.
+python3 - "$DIST/appcast.xml" <<'PY'
+import re, sys
+
+path = sys.argv[1]
+xml = open(path).read()
+
+def fix(match):
+    item = match.group(0)
+    version = re.search(r"<sparkle:shortVersionString>([^<]+)<", item)
+    if not version:
+        return item
+    tag = "v" + version.group(1)
+    return re.sub(
+        r"(releases/download/)v[^/]+/",
+        lambda m: m.group(1) + tag + "/",
+        item,
+    )
+
+xml = re.sub(r"<item>.*?</item>", fix, xml, flags=re.DOTALL)
+open(path, "w").write(xml)
+
+for url in re.findall(r'url="([^"]+)"', xml):
+    print("   ", url)
+PY
 
 echo "==> Publishing appcast to the repo root"
 # Sparkle reads the feed from raw.githubusercontent, which serves whatever is
@@ -82,5 +134,6 @@ echo "==> Done."
 echo "    1. Create GitHub release  v$VERSION  and upload  $(basename "$ARCHIVE")"
 echo "    2. Commit and push appcast.xml at the repo root:"
 echo "         git add appcast.xml && git commit -m \"Release v$VERSION\" && git push"
-echo "    Order matters: publish the archive before the appcast, or a client that"
-echo "    reads the feed in between gets a 404 on the download."
+echo
+echo "    Order matters: upload the .dmg BEFORE pushing the appcast. A client that"
+echo "    reads the feed in between will 404 on the download."

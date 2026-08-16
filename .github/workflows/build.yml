@@ -1,0 +1,55 @@
+name: Build
+
+# The point of this workflow is not to produce anything shippable — releases are built
+# and signed on the maintainer's Mac, because the signing key is deliberately not in
+# GitHub. What it checks is that THIS REPOSITORY, on its own, still builds.
+#
+# That matters because of the open-core layout. Development happens with Pro/ present,
+# but Pro/ is gitignored. The day something in Core/ starts depending on Pro/, the
+# maintainer's build keeps working and this one breaks — which is the only signal that
+# the public repository has stopped being buildable by anyone else.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain versions
+        run: |
+          swift --version
+          xcodebuild -version
+
+      - name: Confirm this checkout has no Pro sources
+        # Guards the guard. If Pro/ ever appears here, the gitignore rule that keeps
+        # closed source out of a public repository has failed, and the build below
+        # would stop testing what it is meant to test.
+        run: |
+          if [ -d Pro ]; then
+            echo "::error::Pro/ is present in the public repository. It must stay gitignored."
+            exit 1
+          fi
+          echo "OK: Core-only checkout, which is what other people get."
+
+      - name: Build (debug, warnings are errors)
+        env:
+          WHIZME_STRICT: "1"
+        run: ./Scripts/build.sh debug
+
+      - name: Build (release, warnings are errors)
+        env:
+          WHIZME_STRICT: "1"
+        run: ./Scripts/build.sh release
+
+      - name: Verify code signature seals
+        # The runner has no certificate, so build.sh falls back to ad-hoc signing. That
+        # is fine here: this checks the bundle is structurally sound and every nested
+        # Sparkle component is sealed, not that it is signed with the shipping identity.
+        run: codesign --verify --deep --strict build/WhizMe.app

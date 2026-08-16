@@ -75,9 +75,13 @@ if [ -d "$ROOT/Pro/Sources" ]; then
   echo "    Including $(find "$ROOT/Pro/Sources" -name "*.swift" | wc -l | tr -d " ") Pro source file(s)"
 fi
 
+# WHIZME_STRICT=1 turns warnings into errors. .cursorrules says a new warning is a bug;
+# CI sets this so that rule is enforced rather than merely stated. Left off locally so a
+# work-in-progress build is not blocked by an unused variable.
 xcrun swiftc \
   -swift-version 6 \
   -strict-concurrency=complete \
+  ${WHIZME_STRICT:+-warnings-as-errors} \
   -target "$TARGET" \
   -sdk "$SDK" \
   -parse-as-library \
