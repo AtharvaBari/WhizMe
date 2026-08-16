@@ -84,6 +84,15 @@ codesign --verify --deep --strict "$MOUNT/WhizMe.app" \
 hdiutil detach "$MOUNT" -quiet
 MOUNT=""
 
+echo "==> Cleaning up older archives (keeping only the 2 most recent)"
+(
+  cd "$DIST"
+  count=$(ls -1d WhizMe*.dmg 2>/dev/null | wc -l)
+  if [ "$count" -gt 2 ]; then
+    ls -t WhizMe*.dmg | tail -n +3 | xargs rm -f
+  fi
+)
+
 echo "==> Generating appcast (signs each archive with the EdDSA key in your keychain)"
 "$SPARKLE_BIN/generate_appcast" \
   --download-url-prefix "$DOWNLOAD_PREFIX" \
