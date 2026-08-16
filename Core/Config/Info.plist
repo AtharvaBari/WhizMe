@@ -49,10 +49,11 @@
 	<key>SUPublicEDKey</key>
 	<string>ZrF1zkdYClOrWVas/Yvl3ANXmiCsUVCuv9JxndACZgI=</string>
 
-	<!-- No silent default. Sparkle asks on second launch whether to check
-	     automatically, and the answer is mirrored in Settings → Startup. -->
-	<key>SUEnableAutomaticChecks</key>
-	<false/>
+	<!-- SUEnableAutomaticChecks is deliberately ABSENT.
+	     Present-and-false does not mean "ask the user" — it means never check and
+	     never ask, which would make the update notification unreachable. Omitting the
+	     key is what makes Sparkle put up its own one-time "check automatically?"
+	     prompt, and the user's answer is mirrored in Settings → Updates. -->
 
 	<key>SUScheduledCheckInterval</key>
 	<integer>86400</integer>

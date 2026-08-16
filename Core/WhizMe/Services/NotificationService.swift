@@ -24,13 +24,42 @@ final class NotificationService {
         center.delegate = presenter
     }
 
+    /// Handlers for banners that do something when clicked, keyed by the request
+    /// identifier. Cleared on delivery of the tap, so this cannot grow without bound.
+    private var tapHandlers: [String: () -> Void] = [:]
+
     /// Posts a banner, requesting authorization first if it has not been resolved yet.
     /// Safe to call from anywhere; silently no-ops when the user has said no.
-    func post(title: String, body: String) {
-        Task { await postAsync(title: title, body: body) }
+    ///
+    /// - Parameters:
+    ///   - identifier: reuse a stable one to *replace* an earlier banner rather than
+    ///     stacking a second copy — an update reminder should never pile up.
+    ///   - onTap: run when the user clicks the banner. Clicking a banner with no
+    ///     handler just dismisses it.
+    func post(
+        title: String,
+        body: String,
+        identifier: String = UUID().uuidString,
+        onTap: (() -> Void)? = nil
+    ) {
+        if let onTap {
+            tapHandlers[identifier] = onTap
+        }
+        Task { await postAsync(title: title, body: body, identifier: identifier) }
     }
 
-    private func postAsync(title: String, body: String) async {
+    /// Withdraws a previously posted banner — used when the user has already dealt
+    /// with the thing it was reminding them about.
+    func withdraw(identifier: String) {
+        tapHandlers.removeValue(forKey: identifier)
+        center.removeDeliveredNotifications(withIdentifiers: [identifier])
+    }
+
+    fileprivate func handleTap(identifier: String) {
+        tapHandlers.removeValue(forKey: identifier)?()
+    }
+
+    private func postAsync(title: String, body: String, identifier: String) async {
         guard await ensureAuthorized() else { return }
 
         let content = UNMutableNotificationContent()
@@ -39,7 +68,7 @@ final class NotificationService {
         content.sound = nil
 
         let request = UNNotificationRequest(
-            identifier: UUID().uuidString,
+            identifier: identifier,
             content: content,
             trigger: nil // deliver immediately
         )
@@ -85,11 +114,24 @@ final class NotificationService {
 
 /// WhizMe is usually the frontmost app when a utility finishes, and macOS
 /// suppresses banners for the active app unless the delegate asks otherwise.
+///
+/// `@unchecked Sendable` is safe here because this type holds no state of its own:
+/// both callbacks either return a constant or hop straight to the main actor.
 private final class ForegroundPresenter: NSObject, UNUserNotificationCenterDelegate, @unchecked Sendable {
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
         [.banner]
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        let identifier = response.notification.request.identifier
+        await MainActor.run {
+            NotificationService.shared.handleTap(identifier: identifier)
+        }
     }
 }

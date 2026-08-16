@@ -52,7 +52,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let menu = NSMenu()
             menu.addItem(NSMenuItem(title: "Settings…", action: #selector(showSettings), keyEquivalent: ","))
 
-            let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+            // Names the waiting version when there is one, so the menu itself carries
+            // the reminder for anyone who dismissed or never saw the banner.
+            let updateTitle = environment.updates.availableUpdateVersion
+                .map { "Update to \($0)…" } ?? "Check for Updates…"
+            let updateItem = NSMenuItem(title: updateTitle, action: #selector(checkForUpdates), keyEquivalent: "")
             updateItem.isEnabled = environment.updates.canCheckForUpdates
             menu.addItem(updateItem)
 

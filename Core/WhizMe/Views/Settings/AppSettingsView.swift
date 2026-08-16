@@ -77,13 +77,15 @@ struct AppSettingsView: View {
                     SettingsCardDivider()
 
                     SettingsCardRow(
-                        symbolName: "shippingbox",
-                        title: "Current version",
+                        symbolName: app.updates.availableUpdateVersion == nil ? "shippingbox" : "arrow.down.circle.fill",
+                        title: app.updates.availableUpdateVersion.map { "Version \($0) is available" } ?? "Current version",
                         subtitle: lastCheckedDescription
                     ) {
-                        Button("Check Now") { app.updates.checkForUpdates() }
-                            .controlSize(.small)
-                            .disabled(!app.updates.canCheckForUpdates)
+                        Button(app.updates.availableUpdateVersion == nil ? "Check Now" : "Update…") {
+                            app.updates.checkForUpdates()
+                        }
+                        .controlSize(.small)
+                        .disabled(!app.updates.canCheckForUpdates)
                     }
                 }
 
