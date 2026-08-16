@@ -1,0 +1,46 @@
+# Build output
+build/
+DerivedData/
+*.dSYM/
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Signing — never commit these
+*.p12
+*.cer
+*.provisionprofile
+
+# Sparkle's exported EdDSA private key is PLAIN TEXT. Anyone holding it can publish
+# an update that every installed copy will accept and run. Export it outside the
+# repo; this pattern is a backstop, not permission to keep one here.
+sparkle-private-key*.txt
+*private-key*.txt
+
+# Sparkle — fetched and checksum-pinned by Scripts/fetch-sparkle.sh, never committed
+Vendor/
+
+# Release artifacts. Keep these locally: the appcast is regenerated from every
+# archive in dist/, so deleting old ones drops their entries from the feed.
+dist/
+
+# Closed-source Pro tier — NEVER commit to this repository.
+#
+# github.com/AtharvaBari/WhizMe is PUBLIC. Anything under Pro/ that lands in a commit
+# here is published permanently and cannot be recalled: git history keeps it even
+# after a later delete, and forks/caches keep it after a history rewrite.
+#
+# Pro/ is intended to be its own PRIVATE repository. Keeping it ignored here means a
+# stray `git add .` cannot leak it, rather than relying on remembering not to.
+/Pro/
+
+# The appcast is the update feed Sparkle reads from raw.githubusercontent, so unlike
+# everything else in dist/ it MUST be committed. dist/ stays ignored; this does not.
+!/appcast.xml

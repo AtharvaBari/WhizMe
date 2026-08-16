@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundleDisplayName</key>
+	<string>WhizMe</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+
+	<!-- WhizMe is a pure menu bar utility: no Dock tile, no default window, and it
+	     never becomes the "active app" in the ⌘-Tab sense unless it puts up a panel. -->
+	<key>NSAccentColorName</key>
+	<string>AccentColor</string>
+
+	<key>LSUIElement</key>
+	<true/>
+
+	<key>NSHumanReadableCopyright</key>
+	<string>MIT Licensed. Open source at github.com/AtharvaBari/WhizMe</string>
+
+	<!-- Sparkle. WhizMe is not notarized (no Apple Developer Program membership), so
+	     a downloaded release costs the user one trip through Gatekeeper. Sparkle
+	     replaces the bundle in place instead of handing the user a fresh download,
+	     which keeps that cost to first install rather than every release. -->
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/AtharvaBari/WhizMe/main/appcast.xml</string>
+
+	<!-- The public half of the EdDSA key pair. The private half lives in the
+	     maintainer's login keychain and signs every release; Sparkle refuses any
+	     update whose signature does not verify against this string. It is unrelated
+	     to code signing — losing it does not break launches, but losing the PRIVATE
+	     half means no further updates can ever be published. -->
+	<key>SUPublicEDKey</key>
+	<string>ZrF1zkdYClOrWVas/Yvl3ANXmiCsUVCuv9JxndACZgI=</string>
+
+	<!-- No silent default. Sparkle asks on second launch whether to check
+	     automatically, and the answer is mirrored in Settings → Startup. -->
+	<key>SUEnableAutomaticChecks</key>
+	<false/>
+
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
+
+	<!-- macOS composes the Accessibility and Screen Recording prompts itself and does
+	     not read a per-app string for either, unlike Camera or Microphone. These keys
+	     are carried for documentation and for the in-app onboarding copy; the strings
+	     that users actually read live in SystemPermission.rationale. -->
+	<key>NSAccessibilityUsageDescription</key>
+	<string>WhizMe uses Accessibility to move and resize windows for snapping, and to send keystrokes for Advanced Paste.</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>WhizMe reads the pixels you select so Text Extractor can turn them into text. Nothing leaves your Mac.</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>WhizMe uses Apple Events to restore saved window layouts across apps.</string>
+</dict>
+</plist>

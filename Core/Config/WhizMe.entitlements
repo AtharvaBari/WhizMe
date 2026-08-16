@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Deliberately unsandboxed. The App Sandbox forbids the Accessibility API from
+	     driving other applications' windows and blocks whole-screen capture, which is
+	     the entire point of Window Snapping, Workspaces, and Text Extractor. WhizMe
+	     therefore ships outside the Mac App Store, Developer ID signed and notarized. -->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+
+	<!-- Required under the Hardened Runtime to drive other apps via Apple Events
+	     (Workspaces restore). Harmless until that feature ships. -->
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+
+	<!-- Required to load the embedded Sparkle.framework.
+	     Library Validation admits a non-platform library only when its Team ID matches
+	     the host process's. WhizMe is signed with a self-signed certificate because
+	     there is no Apple Developer Program membership, so both sides report
+	     `TeamIdentifier=not set` — and absent does not count as matching. dyld then
+	     refuses the framework with:
+	         'Sparkle.framework/Versions/B/Sparkle' not valid for use in process:
+	         mapping process and mapped file (non-platform) have different Team IDs
+	     Re-signing Sparkle with our own certificate is necessary but not sufficient;
+	     nothing short of a real Team ID satisfies the check.
+	     Narrow the blast radius by remembering what this does and does not do: the rest
+	     of the Hardened Runtime stays on, and everything loaded still has to be validly
+	     signed — this only drops the same-team requirement. DELETE THIS KEY if the
+	     project ever gets a Developer ID; it stops being necessary the moment both
+	     signatures carry the same Team ID. -->
+	<key>com.apple.security.cs.disable-library-validation</key>
+	<true/>
+</dict>
+</plist>

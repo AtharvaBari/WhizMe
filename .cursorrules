@@ -1,0 +1,50 @@
+# WhizMe Code Rules
+
+- Language: Swift 6 (strict concurrency = complete). No warnings-as-noise; a new
+  warning is a bug unless it is a documented deprecation with a comment saying why.
+- Frameworks: SwiftUI, AppKit, Combine, and Apple system frameworks only.
+  Zero WebViews, zero Electron.
+- **Exactly one third-party dependency: Sparkle.** It is the sole exception and the
+  bar for a second one is the same argument: macOS ships no update mechanism outside
+  the App Store, so the alternative to Sparkle is not a system framework — it is
+  hand-written privileged code that replaces the running app. Anything that *does*
+  have a system-framework answer must use it.
+  Sparkle is confined to `Services/UpdateService.swift`; no other file imports it.
+  It is fetched and checksum-pinned by `Scripts/fetch-sparkle.sh`, never committed.
+- Target: macOS 14.0+.
+- Bundle identifier: me.whiz.app
+
+## File separation — never combine responsibilities in one file
+
+| Layer         | Directory     | Contains                                                        |
+| ------------- | ------------- | --------------------------------------------------------------- |
+| `Models/`     | data only     | Value types. Foundation only where possible; no AppKit, no IOKit. |
+| `Services/`   | syscalls only | One system framework wrapper per file. Stateless or single-purpose. No `@Observable`, no UI. |
+| `Managers/`   | state only    | `@MainActor @Observable final class`. Orchestrates services. Never calls a system API directly. |
+| `Views/`      | pixels only   | SwiftUI views + AppKit windows. Reads managers, never a service. |
+
+A new utility means: a `WhizFeature` case, a service per system API it touches, one
+manager, and rows in `MenuBarView` / `SettingsView`. Nothing else should need editing.
+
+`AppEnvironment` is the composition root and the single entry point for invoking a
+utility (`trigger(_:)`), so the menu bar and the global shortcut always run the same
+code path.
+
+## TCC permissions
+
+Always handle a denied or missing grant gracefully. Never let a utility fail silently:
+set a user-presentable `lastError`, and route the user to the right System Settings
+pane via `SystemPermission.settingsURL`. Deep-link URLs are declared once, on the model.
+
+Remember that macOS shows each TCC prompt at most once per app identity — after that
+the request call is a silent no-op and the only way forward is System Settings.
+
+## Concurrency
+
+- Managers and services that touch AppKit are `@MainActor`.
+- `MainActor.assumeIsolated` is allowed only where a callback is documented to arrive
+  on the main thread (Carbon hotkeys, `Timer`, main-queue notifications) — and the
+  comment must say which.
+- Continuations must resume exactly once. Take the continuation out of its stored
+  property *before* resuming so a duplicate callback is inert.
+- `@unchecked Sendable` requires a comment justifying it.

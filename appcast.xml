@@ -1,0 +1,16 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>WhizMe</title>
+        <item>
+            <title>0.1.0</title>
+            <pubDate>Sun, 16 Aug 2026 12:15:10 +0530</pubDate>
+            <link>https://github.com/AtharvaBari/WhizMe</link>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://github.com/AtharvaBari/WhizMe/releases/download/v0.1.0/WhizMe-0.1.0.zip" length="1699892" type="application/octet-stream" sparkle:edSignature="5L+S28vqi6B8SCXSIYuZvjPt7Ai+BZ4PoEcnfR0Vx2G1v+OY8cjq0UPAzEdN4sYOs1uURgBZgzvZnkMmwhDOBA=="/>
+        </item>
+    </channel>
+</rss>
