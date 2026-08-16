@@ -39,7 +39,7 @@ Execute the release script (passing the new version) and wait for it to complete
 ## Step 6: Create the GitHub Release
 The GitHub CLI must be authenticated. Execute the following to create the release and upload the artifacts from `dist/`:
 ```bash
-gh release create v<new_version> dist/WhizMe-<new_version>.dmg dist/*.delta --title "Release v<new_version>" --generate-notes
+gh release create v<new_version> dist/WhizMe-v<new_version>.dmg dist/*.delta --title "Release v<new_version>" --generate-notes
 ```
 
 ## Step 7: Push the Updated Appcast

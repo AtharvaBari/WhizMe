@@ -52,7 +52,7 @@ fi
 "$ROOT/Scripts/build.sh" release
 
 mkdir -p "$DIST"
-ARCHIVE="$DIST/WhizMe-${VERSION}.dmg"
+ARCHIVE="$DIST/WhizMe-v${VERSION}.dmg"
 
 # One artifact, used for both jobs: the download a new user opens, and the file
 # Sparkle fetches to update an existing install. Shipping a separate .zip for updates
