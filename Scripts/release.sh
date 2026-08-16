@@ -75,7 +75,7 @@ if command -v create-dmg >/dev/null 2>&1; then
     --background "$ROOT/../Brand/bg.png" \
     --window-pos 200 120 \
     --window-size 600 400 \
-    --icon-size 128 \
+    --icon-size 96 \
     --icon "WhizMe.app" 150 200 \
     --hide-extension "WhizMe.app" \
     --app-drop-link 450 200 \
