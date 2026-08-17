@@ -63,9 +63,13 @@ final class AdvancedPasteManager {
             let view = NSHostingView(rootView: AdvancedPasteHUDView(manager: self))
             window.contentView = view
             
-            // Show window
-            window.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
+            // Order front WITHOUT activating. This is the whole point of
+            // `.nonactivatingPanel`, and activating here would defeat it: the paste
+            // below targets whatever app is frontmost, so stealing focus makes WhizMe
+            // the paste target and the user's text lands nowhere. Leaving the original
+            // app frontmost is also what lets `isTextInputFocused` read *its* focused
+            // element rather than ours.
+            window.orderFrontRegardless()
             self.isHUDPresented = true
         }
     }
@@ -114,6 +118,12 @@ final class AdvancedPasteManager {
                 // Copy to clipboard
                 ClipboardService.copy(finalString)
                 
+                // Re-read rather than trusting the cache, the way every other manager
+                // does: polling stops once nothing is missing, so a grant made in
+                // System Settings since the last check would otherwise read as denied
+                // and silently downgrade to "copied, paste it yourself".
+                permissions.refresh()
+
                 // Simulate Paste or Notify
                 if permissions.state(for: .accessibility).isGranted {
                     if ClipboardService.isTextInputFocused {

@@ -15,11 +15,16 @@ final class OverlayPresenter {
     /// - Parameter acceptsKeys: whether the overlay should take keyboard focus. The
     ///   screen blackout needs it (Esc and Return dismiss); the keyboard blocker does
     ///   not, since every key is being swallowed anyway.
+    /// - Returns: `false` when no window could be put up, which means `NSScreen.screens`
+    ///   was empty — possible during a display reconfiguration or with the screen
+    ///   locked. Callers must treat that as a failure to start rather than carrying on:
+    ///   an invisible overlay is one whose dismiss button the user cannot reach.
+    @discardableResult
     func present<Content: View>(
         acceptsKeys: Bool,
         @ViewBuilder content: () -> Content
-    ) {
-        guard windows.isEmpty else { return }
+    ) -> Bool {
+        guard windows.isEmpty else { return false }
 
         let root = content()
 
@@ -45,10 +50,13 @@ final class OverlayPresenter {
             windows.append(window)
         }
 
+        guard !windows.isEmpty else { return false }
+
         if acceptsKeys {
             NSApp.activate(ignoringOtherApps: true)
             windows.first?.makeKey()
         }
+        return true
     }
 
     func dismiss() {

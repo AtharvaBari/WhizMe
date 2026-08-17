@@ -24,6 +24,18 @@ final class RegionSelectionOverlay {
         return await withCheckedContinuation { continuation in
             self.continuation = continuation
             present()
+
+            // No display could be enumerated, so no `RegionSelectionView` exists and
+            // nothing will ever call `onCommit`. Without this the continuation is
+            // never resumed: the caller's task stays suspended forever, and because
+            // `OCRManager.run()` clears `isCapturing` in a `defer` that never runs,
+            // Text Extractor is dead for the rest of the process's life.
+            //
+            // `NSScreen.screens` really can come back empty — during a display
+            // reconfiguration, or with the screen locked.
+            if windows.isEmpty {
+                finish(with: nil)
+            }
         }
     }
 

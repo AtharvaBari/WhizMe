@@ -55,8 +55,12 @@ enum ClipboardService {
         var markdown = html
         
         // Remove scripts and styles
-        markdown = markdown.replacingOccurrences(of: "<script.*?>.*?</script>", with: "", options: [.regularExpression, .caseInsensitive])
-        markdown = markdown.replacingOccurrences(of: "<style.*?>.*?</style>", with: "", options: [.regularExpression, .caseInsensitive])
+        // (?s) makes `.` match newlines. Without it a multi-line <script> block survives
+        // tag-stripping and its JavaScript ends up pasted as text. `.dotMatchesLineSeparators`
+        // is not available here — replacingOccurrences takes String.CompareOptions, which
+        // has no such member, so the flag goes in the pattern.
+        markdown = markdown.replacingOccurrences(of: "(?s)<script.*?>.*?</script>", with: "", options: [.regularExpression, .caseInsensitive])
+        markdown = markdown.replacingOccurrences(of: "(?s)<style.*?>.*?</style>", with: "", options: [.regularExpression, .caseInsensitive])
         
         // Convert links <a href="URL">TEXT</a> to [TEXT](URL)
         let linkPattern = "<a\\s+(?:[^>]*?\\s+)?href=([\"'])(.*?)\\1[^>]*?>(.*?)</a>"
@@ -110,8 +114,15 @@ enum ClipboardService {
         let error = AXUIElementCopyAttributeValue(systemWide, kAXFocusedUIElementAttribute as CFString, &focusedElement)
         
         guard error == .success, let element = focusedElement else { return false }
+
+        // Checked, not forced. `as!` here would terminate the app the first time the
+        // accessibility API hands back anything other than an element — and it can:
+        // the attribute is documented to return an AXUIElement, but a misbehaving or
+        // half-torn-down app is under no obligation to honour that. Losing the paste
+        // is acceptable; losing the process is not.
+        guard CFGetTypeID(element) == AXUIElementGetTypeID() else { return false }
         let axElement = element as! AXUIElement
-        
+
         // Check Role
         var role: CFTypeRef?
         if AXUIElementCopyAttributeValue(axElement, kAXRoleAttribute as CFString, &role) == .success, let roleString = role as? String {

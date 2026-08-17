@@ -23,8 +23,19 @@ BUILD_VERSION="5"
 DEPLOYMENT_TARGET="14.0"
 
 SDK="$(xcrun --show-sdk-path --sdk macosx)"
-ARCH="$(uname -m)"
-TARGET="${ARCH}-apple-macos${DEPLOYMENT_TARGET}"
+
+# Release builds are universal; debug builds are host-only.
+#
+# A release compiled for just this Mac's architecture cannot run on the other kind at
+# all — and because the appcast records the slice as a hardware requirement, Sparkle
+# correctly refuses to even offer the update. Shipping host-only silently excludes
+# every Intel Mac. Debug stays single-arch because doubling compile time on every
+# edit buys a developer nothing.
+if [ "$CONFIG" = "release" ]; then
+  ARCHS=(arm64 x86_64)
+else
+  ARCHS=("$(uname -m)")
+fi
 
 SPARKLE_DIR="$ROOT/Vendor/Sparkle"
 "$ROOT/Scripts/fetch-sparkle.sh" | sed 's/^/    /'
@@ -56,7 +67,7 @@ rm -rf "$APP/Contents/Frameworks/Sparkle.framework/Versions/B/Headers" \
        "$APP/Contents/Frameworks/Sparkle.framework/PrivateHeaders" \
        "$APP/Contents/Frameworks/Sparkle.framework/Modules"
 
-echo "==> Compiling Swift ($CONFIG, $TARGET)"
+echo "==> Compiling Swift ($CONFIG, ${ARCHS[*]})"
 # Every framework used (AppKit, SwiftUI, IOKit, Vision, ScreenCaptureKit,
 # UserNotifications, Carbon, ServiceManagement, CoreGraphics, ApplicationServices)
 # is a system framework with a Clang module, so Swift autolinking resolves them
@@ -78,19 +89,36 @@ fi
 # WHIZME_STRICT=1 turns warnings into errors. .cursorrules says a new warning is a bug;
 # CI sets this so that rule is enforced rather than merely stated. Left off locally so a
 # work-in-progress build is not blocked by an unused variable.
-xcrun swiftc \
-  -swift-version 6 \
-  -strict-concurrency=complete \
-  ${WHIZME_STRICT:+-warnings-as-errors} \
-  -target "$TARGET" \
-  -sdk "$SDK" \
-  -parse-as-library \
-  -F "$SPARKLE_DIR" \
-  -framework Sparkle \
-  -Xlinker -rpath -Xlinker "@executable_path/../Frameworks" \
-  "${SWIFT_FLAGS[@]}" \
-  -o "$APP/Contents/MacOS/$EXECUTABLE" \
-  "${SWIFT_FILES[@]}"
+# swiftc emits one architecture per invocation, so a universal binary means compiling
+# each slice separately and joining them with lipo. (`-target` is not repeatable, and
+# there is no `-arch` equivalent that fans out the way clang's does.)
+SLICES=()
+for arch in "${ARCHS[@]}"; do
+  slice="$BUILD_DIR/$EXECUTABLE-$arch"
+  echo "    $arch"
+  xcrun swiftc \
+    -swift-version 6 \
+    -strict-concurrency=complete \
+    ${WHIZME_STRICT:+-warnings-as-errors} \
+    -target "${arch}-apple-macos${DEPLOYMENT_TARGET}" \
+    -sdk "$SDK" \
+    -parse-as-library \
+    -F "$SPARKLE_DIR" \
+    -framework Sparkle \
+    -Xlinker -rpath -Xlinker "@executable_path/../Frameworks" \
+    "${SWIFT_FLAGS[@]}" \
+    -o "$slice" \
+    "${SWIFT_FILES[@]}"
+  SLICES+=("$slice")
+done
+
+if [ "${#SLICES[@]}" -gt 1 ]; then
+  echo "    Joining $(printf '%s ' "${ARCHS[@]}")into one universal binary"
+  xcrun lipo -create "${SLICES[@]}" -output "$APP/Contents/MacOS/$EXECUTABLE"
+else
+  mv "${SLICES[0]}" "$APP/Contents/MacOS/$EXECUTABLE"
+fi
+rm -f "${SLICES[@]}"
 
 echo "==> Compiling asset catalog"
 xcrun actool "$ROOT/Core/WhizMe/Assets.xcassets" \

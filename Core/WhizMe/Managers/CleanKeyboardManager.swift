@@ -50,11 +50,20 @@ final class CleanKeyboardManager {
             return
         }
 
+        // Put the overlay up BEFORE committing to the blocked state. Its button is the
+        // only way out of a keyboard block — a block with no overlay is a Mac whose
+        // keyboard is dead and whose off switch is invisible.
+        guard overlay.present(acceptsKeys: false, content: { [weak self] in
+            CleanKeyboardOverlay { self?.stop() }
+        }) else {
+            KeyboardBlockService.shared.end()
+            lastError = "No display was available to show the stop button, so the keyboard was left on."
+            log.error("Overlay could not be presented; keyboard block rolled back")
+            return
+        }
+
         lastError = nil
         isCleaning = true
-        overlay.present(acceptsKeys: false) { [weak self] in
-            CleanKeyboardOverlay { self?.stop() }
-        }
     }
 
     func stop() {

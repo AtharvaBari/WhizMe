@@ -28,10 +28,14 @@ final class CleanScreenManager {
 
         onWillStart?()
 
-        isCleaning = true
-        overlay.present(acceptsKeys: true) {
-            CleanScreenOverlay()
+        // Present first: the key monitor below swallows every keystroke that is not
+        // Escape or Return, so installing it without a visible overlay would eat the
+        // user's typing with nothing on screen to explain why.
+        guard overlay.present(acceptsKeys: true, content: { CleanScreenOverlay() }) else {
+            return
         }
+
+        isCleaning = true
 
         // A local monitor rather than the view's `keyDown`: it fires wherever focus
         // ends up among the per-display windows, so Escape works on any screen.
