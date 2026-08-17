@@ -137,6 +137,27 @@ presents one identity.
 > first-launch components were never installed. Fix it once with
 > `sudo xcodebuild -runFirstLaunch`.
 
+## Starting from a clean slate
+
+```bash
+./Scripts/reset-local-state.sh
+```
+
+Erases every trace of WhizMe from this Mac — preferences, caches, saved state, Launch
+Services registration, and the TCC grants — so the next launch is a genuine first run:
+the full-screen welcome plays, and the permission walkthrough follows it.
+
+`--keep-permissions` resets state but leaves Accessibility and Screen Recording alone,
+which is what you want when you only need to replay the welcome. `--clean-build` also
+removes `build/` and DerivedData.
+
+It deliberately does **not** touch the login keychain. The signing certificate and the
+Sparkle EdDSA key are not app state, and both are irreplaceable — see the key table above.
+
+Two things macOS exposes no per-app switch for, so the script can only tell you about them:
+notification permission (System Settings ▸ Notifications) and Launch at login, which
+survives as a background item if it was ever switched on.
+
 ## Releases and updates
 
 WhizMe updates itself with [Sparkle 2](https://sparkle-project.org) — the project's
