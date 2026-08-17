@@ -6,6 +6,51 @@ Each entry says what was wrong, what changed, and whether it was actually tested
 
 ---
 
+## 2026-08-17 — Full-screen welcome, and Settings was broken
+
+Added the full-screen first-run sequence: the desktop dims, the logo assembles itself from
+particles in the middle of the screen, slides left, and "WhizMe" slides out from behind
+it. A Continue button arrives at the bottom when it finishes. Escape or Return skip it.
+
+After Continue it opens Settings on the Home page, waits for that to land, and only then
+asks for permissions — and only if something is actually missing. On a Mac where
+everything is already granted, no permission window appears at all.
+
+Removed, as redundant: the small onboarding window's own logo intro (the full-screen one
+does that job now, so users were greeted twice), and the "Setup walkthrough" row in
+Settings. Added a temporary "Replay welcome animation" button under a Testing group in
+Settings, marked for removal before 1.0.
+
+### Settings could not be opened at all
+
+This is the big one, and it was pre-existing. Every route into Settings — including the
+menu bar's own "Settings…" item — called `showSettingsWindow:`. That reports success and
+opens nothing in this app. Confirmed it was not a permissions or activation problem by
+retesting with the app active and promoted; still nothing. The cause is that SwiftUI never
+realises the Settings scene, because a menu-bar-only app has no window-bearing scene to
+connect it to.
+
+Settings is now hosted in its own window, the same way the other windows already were.
+Verified: the window now appears, titled and on the Home page.
+
+### Two SwiftUI traps found by tracing
+
+The welcome kept dismissing itself the instant it finished. Two separate causes, both
+found by instrumenting the code rather than guessing:
+
+1. A `Button` with `.keyboardShortcut(.defaultAction)` in a borderless key window **fires
+   its own action** with no keypress at all.
+2. A `Button` whose `.disabled` flips from true to false also self-fires.
+
+The Continue button now uses neither — it is inserted when ready, and Return is handled by
+the window directly.
+
+**Not verified:** nobody has looked at the animation. Screenshots need Screen Recording
+permission the terminal does not have, so timing, scale, and whether the slide reads well
+all need human eyes.
+
+---
+
 ## 2026-08-17 — Custom onboarding window
 
 Onboarding opened as a plain macOS window — traffic lights, an empty title bar — which

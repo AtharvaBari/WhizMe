@@ -39,11 +39,21 @@ final class PreferencesManager {
         didSet { defaults.set(hasCompletedOnboarding, forKey: Keys.hasCompletedOnboarding) }
     }
 
+    /// Set once the full-screen welcome has played.
+    ///
+    /// Deliberately separate from `hasCompletedOnboarding`: the walkthrough is only shown
+    /// when a permission is actually missing, so a user who grants everything up front
+    /// would never set that flag — and the welcome would replay on every single launch.
+    var hasSeenWelcome: Bool {
+        didSet { defaults.set(hasSeenWelcome, forKey: Keys.hasSeenWelcome) }
+    }
+
     @ObservationIgnored private let defaults: UserDefaults
 
     private enum Keys {
         static let enabledFeatures = "enabledFeatures"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
+        static let hasSeenWelcome = "hasSeenWelcome"
         static let theme = "theme"
         static let defaultAwakeDuration = "defaultAwakeDuration"
     }
@@ -59,6 +69,7 @@ final class PreferencesManager {
 
         self.theme = defaults.string(forKey: Keys.theme).flatMap(AppTheme.init(rawValue:)) ?? .system
         self.hasCompletedOnboarding = defaults.bool(forKey: Keys.hasCompletedOnboarding)
+        self.hasSeenWelcome = defaults.bool(forKey: Keys.hasSeenWelcome)
         self.launchAtLogin = LaunchAtLoginService.isEnabled
 
         if let durationRaw = defaults.string(forKey: Keys.defaultAwakeDuration),

@@ -17,13 +17,62 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         
         setupMenuBar()
 
-        // First run only. Re-opening this window on every launch where a permission is
-        // missing turns a deliberate "skip" into a nag — and on ad-hoc builds, where
-        // macOS drops the grant on each rebuild, it would fire every single time. The
-        // menu bar's warning banner carries the message from here on.
-        if !environment.preferences.hasCompletedOnboarding {
-            OnboardingPresenter.shared.present(environment: environment)
+        startFirstRunIfNeeded()
+    }
+
+    /// The first-launch sequence: welcome, then the home screen, then the permission
+    /// walkthrough only if something is actually missing.
+    ///
+    /// Each step is gated by its own flag. Re-opening the walkthrough on every launch
+    /// where a permission is missing would turn a deliberate "skip" into a nag — and on
+    /// ad-hoc builds, where macOS drops the grant on each rebuild, it would fire every
+    /// single time. The menu bar's warning banner carries the message from there on.
+    private func startFirstRunIfNeeded() {
+        guard !environment.preferences.hasSeenWelcome else {
+            if !environment.preferences.hasCompletedOnboarding {
+                OnboardingPresenter.shared.present(environment: environment)
+            }
+            return
         }
+
+        playWelcome()
+    }
+
+    /// Runs the welcome and everything that follows it. Also the entry point for the
+    /// replay button in Settings.
+    func playWelcome() {
+        WelcomeCinematicPresenter.shared.present { [weak self] in
+            guard let self else { return }
+
+            // Marked seen on completion rather than on launch: a crash mid-animation
+            // should not cost the user the one chance to see it.
+            self.environment.preferences.hasSeenWelcome = true
+
+            Task { @MainActor in
+                await self.openHomeThenRequestPermissions()
+            }
+        }
+    }
+
+    /// Opens Settings on Home, then asks for any missing permission.
+    ///
+    /// The permission window is meant to arrive *over* the home page, so the user sees
+    /// what they are being asked to unlock. Presenting both in one frame stacks them in
+    /// an arbitrary order.
+    private func openHomeThenRequestPermissions() async {
+        SettingsPresenter.shared.present(environment: environment, section: .home)
+
+        // Let the home page land before anything covers it.
+        try? await Task.sleep(for: .seconds(0.65))
+
+        // Re-read instead of trusting the cache. Polling stops once nothing is missing,
+        // so a system where everything is already granted would otherwise be asked again
+        // on the strength of a stale reading — which is exactly the pointless dialog this
+        // check exists to avoid.
+        environment.permissions.refresh()
+        guard !environment.permissions.allGranted else { return }
+
+        OnboardingPresenter.shared.present(environment: environment)
     }
     
     private func setupMenuBar() {
@@ -82,7 +131,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func showSettings() {
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        SettingsPresenter.shared.present(environment: environment)
     }
     
     private func observeAwakeState() {

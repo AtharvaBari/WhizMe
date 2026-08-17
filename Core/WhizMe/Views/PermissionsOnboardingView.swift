@@ -4,8 +4,9 @@ import SwiftUI
 /// First-run walkthrough that explains, in plain language, why WhizMe needs each
 /// macOS privacy permission and lets the user grant them one at a time.
 ///
-/// Opens on a short intro that assembles the logo (see `LogoAssembleView`), then hands
-/// over to the permission list.
+/// Opens straight onto the permission list. The logo animation belongs to the
+/// full-screen welcome (`WelcomeCinematicView`) — having it here too meant the user was
+/// greeted twice by the same flourish.
 ///
 /// The list itself is purely presentational: every status it shows comes from
 /// `PermissionManager`, which keeps polling in the background, so the badges flip to
@@ -17,54 +18,25 @@ struct PermissionsOnboardingView: View {
     @Environment(\.dismissOnboarding) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// Fixed at construction so the assemble animation and the reveal below it are
-    /// driven off the same clock.
-    @State private var introStart = Date()
-    /// The intro is still covering the permissions list.
-    @State private var showIntro = true
-    /// The title and Continue button have joined the assembled logo.
-    @State private var introSettled = false
     /// The permission list has been asked to come in. Each row reads this with its own
     /// delay, so one flag drives the whole staircase.
     @State private var listRevealed = false
 
     var body: some View {
-        ZStack {
-            permissionsContent
-                .opacity(showIntro ? 0 : 1)
-                // Invisible is not the same as inactive. This branch stays in the
-                // hierarchy behind the intro so the two can cross-fade, which left its
-                // buttons live the whole time: its "Done" also claims
-                // `.keyboardShortcut(.defaultAction)`, so pressing Return on the intro
-                // fired Done instead of Continue and skipped onboarding outright.
-                .disabled(showIntro)
-                .allowsHitTesting(!showIntro)
-
-            if showIntro {
-                intro
-                    // Kept in one transition so the overlay actually animates out. The
-                    // previous version removed the branch and applied the scale in the
-                    // same frame, so the exit was an instant cut.
-                    .transition(.opacity.combined(with: .scale(scale: 1.06)))
+        permissionsContent
+            .frame(width: Metrics.onboardingWidth)
+            .frame(maxHeight: .infinity)
+            // Opaque, not a material: the permission cards below use
+            // `controlBackgroundColor`, which reads as muddy over a blurred desktop.
+            .background(Color(nsColor: .windowBackgroundColor))
+            .task {
+                // A beat before the rows arrive, so they follow the window's own
+                // entrance rather than racing it.
+                if !reduceMotion {
+                    try? await Task.sleep(for: .seconds(0.12))
+                }
+                listRevealed = true
             }
-        }
-        .frame(width: Metrics.onboardingWidth)
-        .frame(maxHeight: .infinity)
-        // Opaque, not a material: the permission cards below use
-        // `controlBackgroundColor`, which reads as muddy over a blurred desktop.
-        .background(Color(nsColor: .windowBackgroundColor))
-        .task {
-            let assemble = reduceMotion
-                ? LogoAssembleView.reducedMotionDuration
-                : LogoAssembleView.duration
-            try? await Task.sleep(for: .seconds(assemble))
-
-            // A gentle spring rather than a fade: the wordmark and button rise into
-            // place just as the logo finishes settling.
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) {
-                introSettled = true
-            }
-        }
     }
 
     private var permissionsContent: some View {
@@ -92,53 +64,6 @@ struct PermissionsOnboardingView: View {
             footer
                 .rises(listRevealed, step: SystemPermission.allCases.count + 2, reduceMotion: reduceMotion)
         }
-    }
-
-    private var intro: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 0)
-
-            LogoAssembleView(startDate: introStart, size: 190)
-
-            VStack(spacing: 8) {
-                Text("Welcome to \(AppInfo.name)")
-                    .font(.system(size: 22, weight: .semibold))
-                    .tracking(-0.3)
-
-                Text("The open-source PowerToys suite for macOS.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-            // Rising into place reads as one continuous motion with the logo settling,
-            // where a plain fade reads as two separate events.
-            .offset(y: introSettled ? 0 : 14)
-            .opacity(introSettled ? 1 : 0)
-
-            Button("Continue") {
-                withAnimation(.easeInOut(duration: 0.42)) {
-                    showIntro = false
-                }
-                // Set in the same action, not in an `onAppear` on the list: the list is
-                // already in the hierarchy behind the intro, so `onAppear` fired long
-                // ago and the rows would arrive with no motion at all.
-                //
-                // Not wrapped in `withAnimation` — each row supplies its own spring and
-                // delay in `rises`, and an enclosing animation would override them all
-                // with one timing curve and flatten the stagger.
-                listRevealed = true
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .keyboardShortcut(.defaultAction)
-            .padding(.top, 26)
-            .offset(y: introSettled ? 0 : 10)
-            .opacity(introSettled ? 1 : 0)
-            .disabled(!introSettled)
-
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.bottom, 24)
     }
 
     // Gaps deliberately unequal: the logo owns the block, so it gets more air above the
@@ -186,9 +111,7 @@ struct PermissionsOnboardingView: View {
             Button("Done") { finish() }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                // Belt and braces with the `.disabled` above: only one view may own the
-                // default action at a time, and the intro's Continue owns it first.
-                .keyboardShortcut(showIntro ? nil : .defaultAction)
+                .keyboardShortcut(.defaultAction)
         }
         .padding(.horizontal, Metrics.windowInset)
         .padding(.vertical, 14)

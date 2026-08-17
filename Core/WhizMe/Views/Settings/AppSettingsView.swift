@@ -45,17 +45,27 @@ struct AppSettingsView: View {
                             .labelsHidden()
                     }
 
-                    SettingsCardDivider()
+                }
 
+                // TEMPORARY — remove before 1.0.
+                // Here so the welcome sequence can be watched without wiping
+                // `hasSeenWelcome` and relaunching. Deliberately its own group rather
+                // than tucked into Startup, so deleting it is a one-block change and it
+                // never reads as a shipping feature.
+                group("Testing") {
                     SettingsCardRow(
-                        symbolName: "sparkles",
-                        title: "Setup walkthrough",
-                        subtitle: "Run the first-launch permission guide again"
+                        symbolName: "play.rectangle",
+                        title: "Replay welcome animation",
+                        subtitle: "Plays the full-screen first-launch sequence"
                     ) {
-                        Button("Show…") {
-                            OnboardingPresenter.shared.present(environment: app)
+                        Button("Play") {
+                            // Bare completion on purpose: this is a preview of the
+                            // animation, not a re-run of first launch, so it must not
+                            // reopen Settings or re-present the permission walkthrough.
+                            WelcomeCinematicPresenter.shared.present {}
                         }
                         .controlSize(.small)
+                        .disabled(WelcomeCinematicPresenter.shared.isPresenting)
                     }
                 }
 
