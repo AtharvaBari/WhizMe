@@ -13,6 +13,10 @@ enum Metrics {
     static let panelWidth: CGFloat = 300
     /// Gutter between the panel edge and a row's hover background.
     static let panelGutter: CGFloat = 8
+    /// Clipboard history is wider than the paste chooser: its rows carry a line of copied
+    /// text, and 300pt truncated almost everything worth recognising.
+    static let historyPanelWidth: CGFloat = 420
+    static let historyPanelHeight: CGFloat = 440
     /// Inset inside a row's hover background.
     static let rowPadding: CGFloat = 8
     static let rowVerticalPadding: CGFloat = 5

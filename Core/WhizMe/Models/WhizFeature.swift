@@ -15,6 +15,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
     case cleanKeyboard
     case cleanScreen
     case batteryHealth
+    case clipboardHistory
 
     var id: String { rawValue }
 
@@ -30,6 +31,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         case .cleanKeyboard: "Clean Keyboard"
         case .cleanScreen: "Clean Screen"
         case .batteryHealth: "Battery & Thermal"
+        case .clipboardHistory: "Clipboard History"
         }
     }
 
@@ -45,6 +47,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         case .cleanKeyboard: "Switch the keyboard off so you can wipe it"
         case .cleanScreen: "Black out every display to clean the glass"
         case .batteryHealth: "Cycle count, health, and whether this Mac is throttling"
+        case .clipboardHistory: "Search everything you have copied, and pin what you reuse"
         }
     }
 
@@ -60,6 +63,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         case .cleanKeyboard: "keyboard"
         case .cleanScreen: "display"
         case .batteryHealth: "battery.100percent"
+        case .clipboardHistory: "list.clipboard"
         }
     }
 
@@ -67,7 +71,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
     var category: FeatureCategory {
         switch self {
         case .colorPicker, .textExtractor, .cropAndLock: .screen
-        case .advancedPaste: .clipboard
+        case .advancedPaste, .clipboardHistory: .clipboard
         case .windowSnapping, .workspaces: .windows
         case .awake, .batteryHealth: .system
         case .cleanKeyboard, .cleanScreen: .cleanMyMac
@@ -91,12 +95,13 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         case .cleanScreen: 8
         case .cleanKeyboard: 9
         case .batteryHealth: 10
+        case .clipboardHistory: 11
         }
     }
 
     var requiredPermissions: [SystemPermission] {
         switch self {
-        case .awake, .colorPicker, .batteryHealth: []
+        case .awake, .colorPicker, .batteryHealth, .clipboardHistory: []
         case .textExtractor, .cropAndLock: [.screenRecording]
         case .windowSnapping, .workspaces: [.accessibility]
         case .advancedPaste: [.accessibility]
@@ -120,7 +125,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
 
     var availability: Availability {
         switch self {
-        case .awake, .colorPicker, .textExtractor, .advancedPaste, .cleanKeyboard, .cleanScreen, .batteryHealth: .shipping
+        case .awake, .colorPicker, .textExtractor, .advancedPaste, .cleanKeyboard, .cleanScreen, .batteryHealth, .clipboardHistory: .shipping
         case .windowSnapping: .comingSoon
         case .cropAndLock, .workspaces: .pro
         }

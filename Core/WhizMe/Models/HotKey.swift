@@ -58,6 +58,8 @@ extension HotKey {
             HotKey(keyCode: 0x00, modifiers: [.control, .shift, .command], keyLabel: "A")
         case .advancedPaste:
             HotKey(keyCode: 0x09, modifiers: [.option, .command], keyLabel: "V")
+        case .clipboardHistory:
+            HotKey(keyCode: 0x09, modifiers: [.control, .shift, .command], keyLabel: "V")
         default:
             nil
         }

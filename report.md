@@ -6,6 +6,91 @@ Each entry says what was wrong, what changed, and whether it was actually tested
 
 ---
 
+## 2026-08-17 — Three new features, and one declined
+
+Added Clipboard History, Battery & Thermal, and conditional Awake. The fourth request —
+a menu bar manager — I looked into and did not build; the reason is at the end.
+
+### Clipboard History  ⌃⇧⌘V
+
+Everything you copy, searchable, with pinning. Arrow keys move, Return copies the selected
+entry, ⌘P pins, ⌘⌫ deletes. Pinned entries are never removed by the 200-item limit or by
+Clear.
+
+**Privacy came first, because getting it wrong once is unrecoverable.** A history that
+records a password has already failed, and no filtering afterwards undoes it. So the checks
+sit at the point of capture, before the text is even read into memory:
+
+- Copies marked confidential by password managers are skipped. 1Password, Bitwarden and
+  KeePassXC all set a standard marker for this.
+- Anything *shaped* like a generated secret is skipped too, as a backstop for a manager
+  that forgets the marker — long, unbroken, mixing character classes the way prose does not.
+- Text only. Images are never stored, so screenshots do not quietly pile up on disk.
+- The file is written owner-only, in Application Support, and there is a one-click delete
+  that removes the file itself rather than just emptying the list.
+
+Verified all of it: a marked copy was skipped, a password-shaped string was skipped, a long
+URL was correctly *not* mistaken for a secret, copying the same thing twice moved the entry
+instead of duplicating it, pinning survived clearing, search worked, and the file came out
+with owner-only permissions.
+
+Monitoring costs almost nothing. macOS has no "clipboard changed" notification, so it polls
+twice a second — but reads only a counter, and touches the contents on the rare turn where
+that counter has actually moved.
+
+### Battery & Thermal
+
+Cycle count, maximum capacity, condition, cell temperature, and whether macOS is throttling
+— the numbers hidden behind an option-click in System Information.
+
+Verified against macOS itself on this machine: 75% charge matches `pmset`, 94 cycles matches
+the registry, 89% health matches the raw capacity figures, 30.67°C matches the sensor.
+
+Charge is read from a different source than the rest on purpose: the obvious field is a
+*percentage* on Apple Silicon and *milliamp-hours* on Intel, so reading it directly would
+have shipped a number that was right on this Mac and nonsense on an Intel one.
+
+No timer at all — macOS pushes power and thermal changes, so idle cost is zero. That
+matters most on the one feature whose subject is power. Macs without a battery show thermal
+state alone rather than empty rows, and any reading macOS does not supply shows a dash
+rather than a zero.
+
+### Awake on a condition
+
+Awake can now hold while a chosen app is running, or while anything is still downloading,
+instead of for a fixed time. A duration makes you guess: four hours for a job that takes
+forty minutes leaves the Mac awake for three hours over; one hour for a job that takes
+ninety fails at the worst possible moment.
+
+App-running is event-driven, so the release is immediate. Downloading has to be polled —
+macOS publishes no signal for it and every browser writes its own kind of part-file — so
+that one checks the Downloads folder every ten seconds.
+
+It refuses a condition that is not already true, rather than showing an "on" state nothing
+is sustaining. Verified: a non-running app is refused with a readable reason, Finder is
+accepted, switching to a timed session clears the condition, and no power assertion is left
+held afterwards.
+
+### The menu bar manager — declined, with reasons
+
+macOS exposes no API for hiding or reordering other apps' menu bar icons. Bartender and Ice
+do it by driving other apps' status items through the Accessibility API and manipulating
+windows with private, undocumented calls — behaviour Apple has broken in most recent
+releases.
+
+I did not build it because a menu bar manager that works today and silently stops on the
+next macOS update would cost more trust than the feature is worth, and this is the one
+category where two mature apps already do it well. It is recorded in `idea.md` as
+investigated and declined rather than forgotten, and worth revisiting only if Apple ships
+an API.
+
+I would rather say that than ship something fragile and call it done.
+
+**Not verified across all three:** nobody has looked at the new panels or pages. The logic
+is tested; the pixels are not.
+
+---
+
 ## 2026-08-17 — Advanced Paste rewritten
 
 Advanced Paste was the weakest part of the app. It now works out what your clipboard can

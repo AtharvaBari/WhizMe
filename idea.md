@@ -31,6 +31,11 @@ Pro tier is the power-user work that takes real engineering.
 | **Advanced Paste** | Reformat the clipboard on the way out — plain text, Markdown, JSON, case changes, OCR from an image. | `⌥⌘V` | Accessibility (to auto-paste) |
 | **Clean Keyboard** | Swallows every key so you can wipe the keyboard. Exits by trackpad only — deliberately. | on demand | Accessibility |
 | **Clean Screen** | Blacks out every display so you can clean the glass. Escape or Return exits. | on demand | — |
+| **Clipboard History** | Everything you copy, searchable, with pinning. Text only; password-manager copies are never recorded. | `⌃⇧⌘V` | — |
+| **Battery & Thermal** | Cycle count, maximum capacity, condition, cell temperature, and whether macOS is throttling. | readout | — |
+
+Awake also holds **on a condition** rather than a timer — while a chosen app runs, or while
+anything is still downloading — so there is no duration to guess.
 
 Plus: launch at login, light/dark/system theme, rebindable shortcuts, first-run
 permission walkthrough, and automatic updates with a notification when one is available.
@@ -72,26 +77,21 @@ promise the project is built on.
 
 Not committed to. Kept here so they are not lost.
 
-**Clipboard history** — searchable, with pinning. Big overlap with Advanced Paste's
-plumbing; the hard parts are storage, privacy (never persist password-manager copies),
-and search UI.
-
 **Screenshot annotation** — Text Extractor already selects a region and captures it.
 Arrows, boxes, blur-for-redaction is a short step from there.
-
-**Battery / thermal readout** — a menu bar line for cycle count, health, throttling. Easy,
-and it fits a utility suite.
 
 **Quick file actions** — convert image formats, strip EXIF, resize, from the menu bar.
 
 **Focus profiles** — one toggle that sets Do Not Disturb, quits Slack, opens the editor,
 and turns Awake on. Composes existing utilities rather than adding a system integration.
 
-**Do-not-sleep on conditions** — keep awake *while* a named app runs, or while a download
-is active, instead of a fixed timer. A genuinely better Awake.
-
-**Menu bar manager** — hide and reorder menu bar icons. Popular category, but crowded
-(Bartender, Ice) and fiddly.
+**Menu bar manager** — hide and reorder menu bar icons. **Investigated and declined.**
+macOS exposes no API for this. Bartender and Ice work by driving other apps' status items
+through the Accessibility API and manipulating windows with private CoreGraphics calls —
+undocumented behaviour that Apple has broken in most recent releases. A menu bar manager
+that works on Sonoma and silently stops on the next macOS would damage trust in the whole
+suite, and it is the one category where two mature apps already do it properly. Revisit
+only if Apple ships an API.
 
 **Text snippets / expansion** — type `;addr` and get an address. Needs Accessibility
 keystroke injection, which Advanced Paste already does.
@@ -128,9 +128,6 @@ scary dialog. $99/yr fixes it; a natural first use of sponsorship money.
 
 **No install page or Homebrew tap yet.** Both matter more for adoption than any new
 feature — a scary unexplained dialog loses more users than a missing utility.
-
-**Advanced Paste is the least polished code in the app.** It works, but it was written
-to a lower standard than everything around it and has no doc comments.
 
 **The update notification has not been observed firing end to end.** The mechanism is
 implemented and structurally verified; nobody has yet watched a banner appear from a real

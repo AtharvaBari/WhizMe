@@ -19,6 +19,7 @@ final class AppEnvironment {
     let cleanKeyboard: CleanKeyboardManager
     let cleanScreen: CleanScreenManager
     let hotKeys: HotKeyManager
+    let clipboardHistory: ClipboardHistoryManager
     let power: PowerManager
     let updates: UpdateManager
 
@@ -42,6 +43,7 @@ final class AppEnvironment {
         self.cleanScreen.onWillStart = { [weak cleanKeyboard = self.cleanKeyboard] in
             cleanKeyboard?.stop()
         }
+        self.clipboardHistory = ClipboardHistoryManager()
         self.power = PowerManager()
         self.hotKeys = HotKeyManager()
 
@@ -60,6 +62,7 @@ final class AppEnvironment {
     func bootstrap() {
         permissions.startMonitoring()
         power.startMonitoring()
+        clipboardHistory.startMonitoring()
 
         for feature in WhizFeature.shipping {
             hotKeys.setAction(for: feature) { [weak self] in
@@ -73,6 +76,8 @@ final class AppEnvironment {
         hotKeys.deactivate()
         permissions.stopMonitoring()
         power.stopMonitoring()
+        // Flushes the debounced save; there is no later.
+        clipboardHistory.stopMonitoring()
         // Releasing the power assertion here matters: a leaked assertion outlives
         // the process and keeps the Mac awake with nothing to switch it off.
         awake.deactivate()
@@ -93,6 +98,8 @@ final class AppEnvironment {
             ocr.captureText()
         case .advancedPaste:
             advancedPaste.showHUD()
+        case .clipboardHistory:
+            ClipboardHistoryPresenter.shared.present(manager: clipboardHistory)
         case .batteryHealth:
             // A readout, not an action — opening its page is the only sensible response.
             pendingSettingsFeature = .batteryHealth

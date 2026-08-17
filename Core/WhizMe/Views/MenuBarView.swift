@@ -25,6 +25,8 @@ struct MenuBarView: View {
             colorPickerRow
             textExtractorRow
             advancedPasteRow
+            clipboardHistoryRow
+            batteryRow
             cleanKeyboardRow
             cleanScreenRow
 
@@ -209,6 +211,37 @@ struct MenuBarView: View {
             action: { run(.advancedPaste) }
         ) {
             shortcutLabel(for: .advancedPaste)
+        }
+    }
+
+    private var clipboardHistoryRow: some View {
+        MenuActionRow(
+            symbolName: WhizFeature.clipboardHistory.symbolName,
+            // The count is the useful detail: it answers "is there anything in there"
+            // without opening the panel.
+            title: WhizFeature.clipboardHistory.title,
+            detail: app.clipboardHistory.isEmpty
+                ? "Nothing copied yet"
+                : "\(app.clipboardHistory.entries.count) items · search and pin",
+            isEnabled: app.preferences.isEnabled(.clipboardHistory),
+            action: { run(.clipboardHistory) }
+        ) {
+            shortcutLabel(for: .clipboardHistory)
+        }
+    }
+
+    /// A readout, so the row *is* the feature — the live summary sits where a shortcut
+    /// would, and clicking opens the detail page.
+    private var batteryRow: some View {
+        MenuActionRow(
+            symbolName: WhizFeature.batteryHealth.symbolName,
+            title: WhizFeature.batteryHealth.title,
+            detail: app.power.summary,
+            action: { openSettings(showing: .batteryHealth) }
+        ) {
+            Image(systemName: "chevron.right")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.tertiary)
         }
     }
 
