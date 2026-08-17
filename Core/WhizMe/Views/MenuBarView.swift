@@ -31,10 +31,6 @@ struct MenuBarView: View {
             cleanScreenRow
 
             sectionDivider
-            sectionLabel("Coming soon")
-            upcomingSection
-
-            sectionDivider
             footer
         }
         .padding(.horizontal, Metrics.panelGutter)
@@ -275,19 +271,7 @@ struct MenuBarView: View {
         }
     }
 
-    private var upcomingSection: some View {
-        ForEach(WhizFeature.upcoming) { feature in
-            MenuActionRow(
-                symbolName: feature.symbolName,
-                title: feature.title,
-                detail: feature.subtitle,
-                badge: feature.availability.badge,
-                isEnabled: false
-            )
-        }
-    }
-
-    // MARK: - Footer
+// MARK: - Footer
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 1) {

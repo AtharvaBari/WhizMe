@@ -2,18 +2,16 @@ import SwiftUI
 
 /// What the sidebar can select.
 ///
-/// Home and Settings are fixed; the categories in between come from the utilities
-/// themselves, so adding a utility to a new group grows the sidebar with no view code.
+/// Two cases, not seven. The five category pages this used to carry duplicated Home and
+/// were removed — see `SettingsSidebar`.
 enum SettingsSection: Hashable, Identifiable {
     case home
-    case category(FeatureCategory)
     /// The app's own settings — appearance, startup, permissions, about.
     case appSettings
 
     var id: String {
         switch self {
         case .home: "home"
-        case .category(let category): "category.\(category.rawValue)"
         case .appSettings: "settings"
         }
     }
@@ -21,7 +19,6 @@ enum SettingsSection: Hashable, Identifiable {
     var title: String {
         switch self {
         case .home: "Home"
-        case .category(let category): category.title
         case .appSettings: "Settings"
         }
     }
@@ -29,7 +26,6 @@ enum SettingsSection: Hashable, Identifiable {
     var icon: String {
         switch self {
         case .home: "square.stack"
-        case .category(let category): category.symbolName
         case .appSettings: "gearshape"
         }
     }
@@ -101,8 +97,6 @@ struct SettingsView: View {
         switch section {
         case .home:
             HomeView(open: openPage)
-        case .category(let category):
-            CategoryView(category: category, open: openPage)
         case .appSettings:
             AppSettingsView()
         }
@@ -113,7 +107,7 @@ struct SettingsView: View {
     private func consumePendingRequest() {
         guard let feature = app.pendingSettingsFeature else { return }
         app.pendingSettingsFeature = nil
-        section = .category(feature.category)
+        section = .home
         openFeature = feature
     }
 

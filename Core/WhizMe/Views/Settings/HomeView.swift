@@ -2,9 +2,13 @@ import SwiftUI
 
 /// The landing page: every utility in one list, most recently added first.
 ///
-/// Ordering is chronological rather than alphabetical or grouped, so what is new is
-/// the first thing seen — someone returning after an update finds the addition at the
-/// top rather than hunting for it. Grouping is what the sidebar categories are for.
+/// Ordering is chronological rather than alphabetical or grouped, so what is new is the
+/// first thing seen — someone returning after an update finds the addition at the top
+/// rather than hunting for it.
+///
+/// This is now the only list of utilities. The five category pages that used to sit beside
+/// it showed the same rows and opened the same pages, so every utility was two clicks away
+/// by two different routes.
 struct HomeView: View {
     @Environment(AppEnvironment.self) private var app
 
@@ -12,7 +16,6 @@ struct HomeView: View {
     let open: (WhizFeature) -> Void
 
     private var released: [WhizFeature] { WhizFeature.releasedNewestFirst }
-    private var upcoming: [WhizFeature] { WhizFeature.upcomingNewestFirst }
     /// The most recent addition, badged at the top of the list.
     private var newest: WhizFeature? { released.first }
 
@@ -22,17 +25,6 @@ struct HomeView: View {
                 header
 
                 list(released)
-
-                if !upcoming.isEmpty {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Coming soon")
-                            .font(.system(size: 11, weight: .medium))
-                            .tracking(0.6)
-                            .foregroundStyle(Theme.textTertiary)
-
-                        list(upcoming)
-                    }
-                }
             }
             .padding(.horizontal, Theme.margin)
             .padding(.top, Metrics.trafficLightInset + 4)
@@ -91,8 +83,6 @@ struct HomeView: View {
     }
 
     private func status(for feature: WhizFeature) -> String {
-        guard feature.availability == .shipping else { return "Not yet available" }
-
         switch feature {
         case .awake:
             return app.awake.isActive ? app.awake.statusDescription : shortcut(.awake)

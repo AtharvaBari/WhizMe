@@ -2,9 +2,12 @@ import SwiftUI
 
 /// WhizMe's own sidebar — not `NavigationSplitView`'s.
 ///
-/// Home at the top, the utility categories in the middle, and the app's own Settings
-/// pinned to the floor. The category list is derived from `FeatureCategory`, so adding
-/// a utility to a new group grows the sidebar without touching this file.
+/// Two destinations: the list of utilities, and the app's own settings.
+///
+/// There used to be five category pages between them. They listed the same utilities Home
+/// already lists and led to the same pages, so every utility was reachable two ways — and
+/// one category ("Windows") held nothing but unbuilt features, making it a sidebar entry
+/// that led nowhere. Eight utilities do not need a taxonomy.
 struct SettingsSidebar: View {
     @Binding var section: SettingsSection
 
@@ -14,21 +17,6 @@ struct SettingsSidebar: View {
 
             VStack(spacing: 2) {
                 item(.home)
-            }
-            .padding(.horizontal, 12)
-            .padding(.bottom, 20)
-
-            Text("Categories")
-                .font(.system(size: 11, weight: .medium))
-                .tracking(0.6)
-                .foregroundStyle(Theme.textTertiary)
-                .padding(.horizontal, 22)
-                .padding(.bottom, 8)
-
-            VStack(spacing: 2) {
-                ForEach(FeatureCategory.populated) { category in
-                    item(.category(category))
-                }
             }
             .padding(.horizontal, 12)
 

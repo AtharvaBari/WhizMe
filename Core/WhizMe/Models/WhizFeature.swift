@@ -67,17 +67,6 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         }
     }
 
-    /// Which sidebar group this utility belongs to.
-    var category: FeatureCategory {
-        switch self {
-        case .colorPicker, .textExtractor, .cropAndLock: .screen
-        case .advancedPaste, .clipboardHistory: .clipboard
-        case .windowSnapping, .workspaces: .windows
-        case .awake, .batteryHealth: .system
-        case .cleanKeyboard, .cleanScreen: .cleanMyMac
-        }
-    }
-
     /// The release this utility arrived in, newest first on the Home list.
     ///
     /// An explicit number rather than the enum's declaration order: cases get
@@ -140,18 +129,16 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         shipping.sorted { $0.releaseOrder > $1.releaseOrder }
     }
 
-    /// Announced but not built, in the order they are planned.
-    static var upcomingNewestFirst: [WhizFeature] {
-        upcoming.sorted { $0.releaseOrder < $1.releaseOrder }
-    }
-
     /// Utilities the user can actually invoke today.
     static var shipping: [WhizFeature] {
         allCases.filter { $0.availability == .shipping }
     }
 
-    /// Utilities shown in the menu as disabled placeholders.
-    static var upcoming: [WhizFeature] {
+    /// Declared but not built. Deliberately not shown anywhere in the UI: three rows the
+    /// user cannot click made the app feel emptier, not fuller, and advertised absence in
+    /// the menu, on Home, and in a category page all at once. The roadmap lives in
+    /// `idea.md` and on the website, where it belongs.
+    static var unbuilt: [WhizFeature] {
         allCases.filter { $0.availability != .shipping }
     }
 
