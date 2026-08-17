@@ -35,6 +35,16 @@ enum Metrics {
 
     static let onboardingWidth: CGFloat = 540
     static let onboardingHeight: CGFloat = 620
+    /// Corner radius of the onboarding card. Larger than a system window's 10pt, which
+    /// is what makes it read as a purpose-built panel rather than a stock window.
+    static let onboardingCorner: CGFloat = 22
+    /// Transparent room around the card inside its borderless window.
+    ///
+    /// The shadow is drawn by SwiftUI rather than AppKit so it scales with the card
+    /// during the entrance animation — AppKit's window shadow is computed from opaque
+    /// pixels and only refreshes on `invalidateShadow()`, so it visibly lags a scale.
+    /// That shadow needs somewhere to land, hence the margin.
+    static let onboardingShadowMargin: CGFloat = 46
     static let settingsWidth: CGFloat = 880
     static let settingsHeight: CGFloat = 620
     static let sidebarWidth: CGFloat = 208

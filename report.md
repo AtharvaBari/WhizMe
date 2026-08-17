@@ -6,6 +6,37 @@ Each entry says what was wrong, what changed, and whether it was actually tested
 
 ---
 
+## 2026-08-17 — Custom onboarding window
+
+Onboarding opened as a plain macOS window — traffic lights, an empty title bar — which
+made the first thing a new user sees look like a settings dialog that opened by accident.
+
+It is now a rounded floating panel that draws its own edge, shadow, and close button. It
+scales up gently when it opens and shrinks away when dismissed, rather than blinking in
+and out. Escape closes it, and you can drag it from anywhere on the panel since there is
+no title bar to grab.
+
+The permission rows now arrive as one movement travelling down the list — each row 45ms
+after the one above it — instead of the whole page fading in at once.
+
+**Found a bug that was already there:** pressing Return on the welcome screen *skipped
+onboarding completely*. The permission list sits behind the intro the whole time so the
+two can cross-fade, and its "Done" button was still live and also registered as the
+default Return action. So Return pressed the invisible Done instead of Continue. Fixed —
+and confirmed by driving it with the keyboard: Return now moves to the permission list,
+and a second Return finishes.
+
+Also chose a titled-but-stripped window over a fully borderless one. A borderless window
+is invisible to VoiceOver and disappears from Mission Control; hiding the parts of a real
+window gets the same look without that cost. Confirmed the window is now announced as
+"Welcome to WhizMe" at the right size.
+
+**Not verified:** nobody has looked at it yet. Taking a screenshot needs Screen Recording
+permission the terminal does not have, so the visual result — spacing, shadow weight,
+whether the entrance feels right — needs human eyes.
+
+---
+
 ## 2026-08-17 — Full bug scan
 
 Read all 7,000 lines and fixed six real bugs. Most of the code is genuinely careful —

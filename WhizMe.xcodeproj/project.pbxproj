@@ -11,17 +11,31 @@
 		ABCDEF0000000000000000F3 /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = ABCDEF0000000000000000F1 /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		ABCDEF0000000000000000F4 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				ABCDEF0000000000000000F3 /* Sparkle.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		ABCDEF0000000000000000A1 /* WhizMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhizMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		ABCDEF0000000000000000F1 /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Vendor/Sparkle/Sparkle.framework; sourceTree = "<group>"; };
 		ABCDEF0000000000000000A2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		ABCDEF0000000000000000A3 /* WhizMe.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WhizMe.entitlements; sourceTree = "<group>"; };
 		ABCDEF0000000000000000A4 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		ABCDEF0000000000000000A5 /* whizme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = whizme.md; sourceTree = "<group>"; };
+		ABCDEF0000000000000000F1 /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Vendor/Sparkle/Sparkle.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		ABCDEF0000000000000000B1 /* WhizMe */ = {
+		ABCDEF0000000000000000B1 /* Core/WhizMe */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Core/WhizMe;
 			sourceTree = "<group>";
@@ -39,27 +53,13 @@
 		};
 /* End PBXFrameworksBuildPhase section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		ABCDEF0000000000000000F4 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				ABCDEF0000000000000000F3 /* Sparkle.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXGroup section */
 		ABCDEF0000000000000000B2 = {
 			isa = PBXGroup;
 			children = (
-				ABCDEF0000000000000000B1 /* WhizMe */,
+				ABCDEF0000000000000000B1 /* Core/WhizMe */,
 				ABCDEF0000000000000000F5 /* Frameworks */,
-				ABCDEF0000000000000000B4 /* Config */,
+				ABCDEF0000000000000000B4 /* Core/Config */,
 				ABCDEF0000000000000000B5 /* Documentation */,
 				ABCDEF0000000000000000B3 /* Products */,
 			);
@@ -73,21 +73,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		ABCDEF0000000000000000B4 /* Config */ = {
+		ABCDEF0000000000000000B4 /* Core/Config */ = {
 			isa = PBXGroup;
 			children = (
 				ABCDEF0000000000000000A2 /* Info.plist */,
 				ABCDEF0000000000000000A3 /* WhizMe.entitlements */,
 			);
 			path = Core/Config;
-			sourceTree = "<group>";
-		};
-		ABCDEF0000000000000000F5 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				ABCDEF0000000000000000F1 /* Sparkle.framework */,
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		ABCDEF0000000000000000B5 /* Documentation */ = {
@@ -97,6 +89,14 @@
 				ABCDEF0000000000000000A5 /* whizme.md */,
 			);
 			name = Documentation;
+			sourceTree = "<group>";
+		};
+		ABCDEF0000000000000000F5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				ABCDEF0000000000000000F1 /* Sparkle.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -116,7 +116,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				ABCDEF0000000000000000B1 /* WhizMe */,
+				ABCDEF0000000000000000B1 /* Core/WhizMe */,
 			);
 			name = WhizMe;
 			packageProductDependencies = (

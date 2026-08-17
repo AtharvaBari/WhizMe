@@ -24,11 +24,21 @@ struct PermissionsOnboardingView: View {
     @State private var showIntro = true
     /// The title and Continue button have joined the assembled logo.
     @State private var introSettled = false
+    /// The permission list has been asked to come in. Each row reads this with its own
+    /// delay, so one flag drives the whole staircase.
+    @State private var listRevealed = false
 
     var body: some View {
         ZStack {
             permissionsContent
                 .opacity(showIntro ? 0 : 1)
+                // Invisible is not the same as inactive. This branch stays in the
+                // hierarchy behind the intro so the two can cross-fade, which left its
+                // buttons live the whole time: its "Done" also claims
+                // `.keyboardShortcut(.defaultAction)`, so pressing Return on the intro
+                // fired Done instead of Continue and skipped onboarding outright.
+                .disabled(showIntro)
+                .allowsHitTesting(!showIntro)
 
             if showIntro {
                 intro
@@ -40,6 +50,8 @@ struct PermissionsOnboardingView: View {
         }
         .frame(width: Metrics.onboardingWidth)
         .frame(maxHeight: .infinity)
+        // Opaque, not a material: the permission cards below use
+        // `controlBackgroundColor`, which reads as muddy over a blurred desktop.
         .background(Color(nsColor: .windowBackgroundColor))
         .task {
             let assemble = reduceMotion
@@ -58,14 +70,19 @@ struct PermissionsOnboardingView: View {
     private var permissionsContent: some View {
         VStack(spacing: 0) {
             header
+                .rises(listRevealed, step: 0, reduceMotion: reduceMotion)
             Divider()
             ScrollView {
                 VStack(spacing: 10) {
                     if CodeSigningService.isAdHocSigned {
                         AdHocSigningWarning()
+                            .rises(listRevealed, step: 1, reduceMotion: reduceMotion)
                     }
-                    ForEach(SystemPermission.allCases) { permission in
+                    // Enumerated for the step index: the stagger is what turns four
+                    // separate fades into one movement travelling down the list.
+                    ForEach(Array(SystemPermission.allCases.enumerated()), id: \.element) { index, permission in
                         PermissionCard(permission: permission)
+                            .rises(listRevealed, step: index + 2, reduceMotion: reduceMotion)
                     }
                 }
                 .padding(Metrics.windowInset)
@@ -73,6 +90,7 @@ struct PermissionsOnboardingView: View {
             .scrollBounceBehavior(.basedOnSize)
             Divider()
             footer
+                .rises(listRevealed, step: SystemPermission.allCases.count + 2, reduceMotion: reduceMotion)
         }
     }
 
@@ -100,6 +118,14 @@ struct PermissionsOnboardingView: View {
                 withAnimation(.easeInOut(duration: 0.42)) {
                     showIntro = false
                 }
+                // Set in the same action, not in an `onAppear` on the list: the list is
+                // already in the hierarchy behind the intro, so `onAppear` fired long
+                // ago and the rows would arrive with no motion at all.
+                //
+                // Not wrapped in `withAnimation` — each row supplies its own spring and
+                // delay in `rises`, and an enclosing animation would override them all
+                // with one timing curve and flatten the stagger.
+                listRevealed = true
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
@@ -160,7 +186,9 @@ struct PermissionsOnboardingView: View {
             Button("Done") { finish() }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .keyboardShortcut(.defaultAction)
+                // Belt and braces with the `.disabled` above: only one view may own the
+                // default action at a time, and the intro's Continue owns it first.
+                .keyboardShortcut(showIntro ? nil : .defaultAction)
         }
         .padding(.horizontal, Metrics.windowInset)
         .padding(.vertical, 14)
@@ -171,6 +199,27 @@ struct PermissionsOnboardingView: View {
     private func finish() {
         app.preferences.hasCompletedOnboarding = true
         dismiss()
+    }
+}
+
+private extension View {
+    /// Rises into place on a per-row delay, turning a list of separate fades into one
+    /// movement that travels down the panel.
+    ///
+    /// - Parameters:
+    ///   - revealed: the single flag every row watches.
+    ///   - step: position in the staircase. 45ms apart — close enough to read as one
+    ///     gesture, far enough apart to be visible. Much more and the last row keeps the
+    ///     user waiting for a button they can already see.
+    ///   - reduceMotion: when set, everything arrives at once with no offset.
+    func rises(_ revealed: Bool, step: Int, reduceMotion: Bool) -> some View {
+        let delay = reduceMotion ? 0 : Double(step) * 0.045
+        return self
+            .offset(y: revealed || reduceMotion ? 0 : 12)
+            .opacity(revealed || reduceMotion ? 1 : 0)
+            // Critically damped: these rows were not thrown by anyone, so they should
+            // settle rather than bounce.
+            .animation(.spring(response: 0.42, dampingFraction: 1).delay(delay), value: revealed)
     }
 }
 
