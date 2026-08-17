@@ -103,15 +103,20 @@ struct HomeView: View {
             return app.permissions.state(for: .screenRecording).isGranted
                 ? shortcut(.textExtractor)
                 : "Needs Screen Recording"
-        // On-demand utilities have no shortcut to report, so the status says whether
-        // they can run instead.
+        // On-demand utilities have no shortcut to report. Idle is the common case for
+        // both, so it says nothing rather than filling the row with "Ready" — the
+        // chevron already says a page is there to open. A blocker still needs saying.
         case .cleanKeyboard:
             if app.cleanKeyboard.isCleaning { return "Keyboard off" }
             return app.permissions.state(for: .accessibility).isGranted
-                ? "Ready"
+                ? ""
                 : "Needs Accessibility"
         case .cleanScreen:
-            return app.cleanScreen.isCleaning ? "Screen blacked out" : "Ready"
+            return app.cleanScreen.isCleaning ? "Screen blacked out" : ""
+        // A readout, not a shortcut-driven utility — falling through to `shortcut(_:)`
+        // rendered as "—" for a feature that will never have one.
+        case .batteryHealth:
+            return ""
         default:
             return shortcut(feature)
         }

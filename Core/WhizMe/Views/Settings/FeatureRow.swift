@@ -50,12 +50,17 @@ struct FeatureRow: View {
 
                     Spacer(minLength: 12)
 
-                    Text(status)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(isHighlighted ? Theme.accent : Theme.textTertiary)
-                        .lineLimit(1)
-                        // Clears whatever is parked on the trailing edge.
-                        .padding(.trailing, feature.isOnDemand ? 34 : 52)
+                    // Nothing rather than an empty label: a row with nothing to report —
+                    // an idle on-demand utility, a readout with no shortcut — should not
+                    // reserve space for a line no one will ever read.
+                    if !status.isEmpty {
+                        Text(status)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(isHighlighted ? Theme.accent : Theme.textTertiary)
+                            .lineLimit(1)
+                            // Clears whatever is parked on the trailing edge.
+                            .padding(.trailing, feature.isOnDemand ? 34 : 52)
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
