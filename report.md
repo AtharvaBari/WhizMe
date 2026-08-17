@@ -6,6 +6,62 @@ Each entry says what was wrong, what changed, and whether it was actually tested
 
 ---
 
+## 2026-08-17 — Advanced Paste rewritten
+
+Advanced Paste was the weakest part of the app. It now works out what your clipboard can
+actually become *before* showing the menu, and lists only the options that will do
+something real.
+
+**Before:** a fixed list of seven options every time. Pick "JSON" on ordinary text and it
+pasted the text unchanged. Pick "Markdown" on plain text and nothing happened. Both
+silently pretended to work, because a failed transform fell back to the original string.
+
+**Now:** every transform runs up front, and a row appears only if it produced a result.
+Each row shows a preview of what it will paste, so you can confirm the conversion before
+committing to it. Nothing is computed twice — choosing a row pastes text that already
+exists. OCR is the one exception: it is too slow to run before a menu that should appear
+instantly, so it runs when chosen.
+
+### What got better
+
+**Markdown conversion actually works.** It used to be a list of regular expressions run
+over raw HTML — it could match `<b>` but not a stylesheet, missed anything nested, and
+would turn a web page's JavaScript into pasted text. It now reads the styling macOS has
+already parsed, so bold, italics and links survive from any rich source. Verified: copied
+rich text with a bold word and a link came out as `**Bold** [link](https://whiz.me)`.
+
+**Title Case stops mangling names.** The old version used a built-in that lowercases the
+rest of every word, turning "iPhone SDK" into "Iphone Sdk". Verified: "iPhone SDK notes"
+now becomes "iPhone SDK Notes".
+
+**Rich-text-only clipboards work.** Some apps put styled text on the clipboard with no
+plain version. Every text option used to be offered and then fail. Text is now pulled from
+the styled version when there is no plain one.
+
+**No more pointless rows.** ALREADY SHOUTING TEXT no longer offers "UPPERCASE". Verified.
+
+**The menu sizes to its content** and stays on screen, flipping above the pointer when
+there is no room below, instead of being a fixed 400pt panel.
+
+### A mistake I made and caught
+
+My first version hid "Plain Text" when the flattened characters matched the plain text
+already on the clipboard, reasoning it was a no-op. That was wrong, and it removed the most
+useful option of the lot: copying from a web page puts matching plain text next to the
+HTML, so the row would almost never have appeared. The point is not that the characters
+differ — it is that the destination receives no styling. Fixed and re-verified.
+
+Verified by driving five different clipboard contents through the real code path and
+checking which options appeared and what each would paste. **Not verified:** the actual
+paste into another app still needs a human to click a row and watch where the text lands.
+
+One cosmetic trait left alone: pretty-printed JSON comes out as `{ "a" : 1 }` with spaces
+around the colon, which is how Apple's JSON writer formats it. Valid, just not the style
+most editors use. Changing it means hand-rolling a serialiser or running a regex over JSON,
+and a regex there can corrupt string values that contain a colon.
+
+---
+
 ## 2026-08-17 — Space Mono for the welcome wordmark
 
 The "WhizMe" text in the launch animation now uses Space Mono Bold, and the temporary

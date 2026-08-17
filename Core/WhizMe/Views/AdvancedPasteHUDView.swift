@@ -20,13 +20,13 @@ struct AdvancedPasteHUDView: View {
 
             ScrollView {
                 VStack(spacing: 1) {
-                    ForEach(Array(manager.availableFormats.enumerated()), id: \.element.id) { index, format in
+                    ForEach(Array(manager.options.enumerated()), id: \.element.id) { index, option in
                         FormatRow(
-                            format: format,
+                            option: option,
                             shortcutNumber: index + 1,
                             isSelected: selectedIndex == index
                         ) {
-                            manager.transformAndPaste(format: format)
+                            manager.paste(option)
                         }
                         .onHover { hovering in
                             if hovering { selectedIndex = index }
@@ -86,7 +86,7 @@ struct AdvancedPasteHUDView: View {
     }
 
     private func handleKeyDown(_ event: NSEvent) -> NSEvent? {
-        let count = manager.availableFormats.count
+        let count = manager.options.count
         guard count > 0 else { return event }
 
         switch event.keyCode {
@@ -97,7 +97,7 @@ struct AdvancedPasteHUDView: View {
             selectedIndex = (selectedIndex - 1 + count) % count
             return nil
         case 36, 76: // Return / Enter
-            manager.transformAndPaste(format: manager.availableFormats[selectedIndex])
+            manager.paste(manager.options[selectedIndex])
             return nil
         case 53: // Escape
             manager.hideHUD()
@@ -106,7 +106,7 @@ struct AdvancedPasteHUDView: View {
             if let characters = event.characters,
                let number = Int(characters),
                number > 0, number <= count {
-                manager.transformAndPaste(format: manager.availableFormats[number - 1])
+                manager.paste(manager.options[number - 1])
                 return nil
             }
             return event
@@ -118,8 +118,19 @@ struct AdvancedPasteHUDView: View {
 /// foreground element has to flip together — a badge left in its resting grey against
 /// an accent fill was the one piece that looked broken.
 private struct FormatRow: View {
-    let format: PasteFormat
+    let option: AdvancedPasteManager.PasteOption
     let shortcutNumber: Int
+
+    private var format: PasteFormat { option.format }
+
+    /// The transformed text when there is one, otherwise the format's own description.
+    ///
+    /// Showing the result is what turns the chooser from a menu of names into something
+    /// you can confirm before committing — "Markdown" tells you nothing, the first line of
+    /// the Markdown tells you whether the conversion worked.
+    private var detail: String {
+        option.preview.isEmpty ? format.subtitle : option.preview
+    }
     let isSelected: Bool
     let action: () -> Void
 
@@ -137,7 +148,7 @@ private struct FormatRow: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
 
-                    Text(format.subtitle)
+                    Text(detail)
                         .font(.system(size: 11))
                         .foregroundStyle(isSelected ? AnyShapeStyle(.white.opacity(0.8)) : AnyShapeStyle(.secondary))
                         .lineLimit(1)
