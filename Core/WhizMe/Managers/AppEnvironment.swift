@@ -19,6 +19,7 @@ final class AppEnvironment {
     let cleanKeyboard: CleanKeyboardManager
     let cleanScreen: CleanScreenManager
     let hotKeys: HotKeyManager
+    let power: PowerManager
     let updates: UpdateManager
 
     init() {
@@ -41,6 +42,7 @@ final class AppEnvironment {
         self.cleanScreen.onWillStart = { [weak cleanKeyboard = self.cleanKeyboard] in
             cleanKeyboard?.stop()
         }
+        self.power = PowerManager()
         self.hotKeys = HotKeyManager()
 
         // Constructed at launch rather than lazily on first use: Sparkle owns the
@@ -57,6 +59,7 @@ final class AppEnvironment {
     /// Called once from the app delegate after launch.
     func bootstrap() {
         permissions.startMonitoring()
+        power.startMonitoring()
 
         for feature in WhizFeature.shipping {
             hotKeys.setAction(for: feature) { [weak self] in
@@ -69,6 +72,7 @@ final class AppEnvironment {
     func shutdown() {
         hotKeys.deactivate()
         permissions.stopMonitoring()
+        power.stopMonitoring()
         // Releasing the power assertion here matters: a leaked assertion outlives
         // the process and keeps the Mac awake with nothing to switch it off.
         awake.deactivate()
@@ -89,6 +93,9 @@ final class AppEnvironment {
             ocr.captureText()
         case .advancedPaste:
             advancedPaste.showHUD()
+        case .batteryHealth:
+            // A readout, not an action — opening its page is the only sensible response.
+            pendingSettingsFeature = .batteryHealth
         case .cleanKeyboard, .cleanScreen:
             // Started from their own settings page, never from a shortcut or a menu
             // click — see `WhizFeature.isOnDemand`.

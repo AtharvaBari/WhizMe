@@ -139,6 +139,7 @@ private struct FeatureSettingsRouter: View {
         case .advancedPaste: AdvancedPasteSettingsPage(onBack: onBack)
         case .cleanKeyboard: CleanKeyboardSettingsPage(onBack: onBack)
         case .cleanScreen: CleanScreenSettingsPage(onBack: onBack)
+        case .batteryHealth: BatterySettingsPage(onBack: onBack)
         case .windowSnapping, .cropAndLock, .workspaces:
             FeatureSettingsScaffold(feature: feature, backTitle: backTitle, onBack: onBack) {
                 SettingsCard {

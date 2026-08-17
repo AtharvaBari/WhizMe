@@ -14,6 +14,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
     case workspaces
     case cleanKeyboard
     case cleanScreen
+    case batteryHealth
 
     var id: String { rawValue }
 
@@ -28,6 +29,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         case .workspaces: "Workspaces"
         case .cleanKeyboard: "Clean Keyboard"
         case .cleanScreen: "Clean Screen"
+        case .batteryHealth: "Battery & Thermal"
         }
     }
 
@@ -42,6 +44,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         case .workspaces: "Save and restore window layouts"
         case .cleanKeyboard: "Switch the keyboard off so you can wipe it"
         case .cleanScreen: "Black out every display to clean the glass"
+        case .batteryHealth: "Cycle count, health, and whether this Mac is throttling"
         }
     }
 
@@ -56,6 +59,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         case .workspaces: "macwindow.on.rectangle"
         case .cleanKeyboard: "keyboard"
         case .cleanScreen: "display"
+        case .batteryHealth: "battery.100percent"
         }
     }
 
@@ -65,7 +69,7 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         case .colorPicker, .textExtractor, .cropAndLock: .screen
         case .advancedPaste: .clipboard
         case .windowSnapping, .workspaces: .windows
-        case .awake: .system
+        case .awake, .batteryHealth: .system
         case .cleanKeyboard, .cleanScreen: .cleanMyMac
         }
     }
@@ -86,12 +90,13 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
         case .workspaces: 7
         case .cleanScreen: 8
         case .cleanKeyboard: 9
+        case .batteryHealth: 10
         }
     }
 
     var requiredPermissions: [SystemPermission] {
         switch self {
-        case .awake, .colorPicker: []
+        case .awake, .colorPicker, .batteryHealth: []
         case .textExtractor, .cropAndLock: [.screenRecording]
         case .windowSnapping, .workspaces: [.accessibility]
         case .advancedPaste: [.accessibility]
@@ -108,14 +113,14 @@ enum WhizFeature: String, CaseIterable, Identifiable, Codable, Sendable {
     /// every display or kills the keyboard is a hotkey nobody wants to hit by accident.
     var isOnDemand: Bool {
         switch self {
-        case .cleanKeyboard, .cleanScreen: true
+        case .cleanKeyboard, .cleanScreen, .batteryHealth: true
         default: false
         }
     }
 
     var availability: Availability {
         switch self {
-        case .awake, .colorPicker, .textExtractor, .advancedPaste, .cleanKeyboard, .cleanScreen: .shipping
+        case .awake, .colorPicker, .textExtractor, .advancedPaste, .cleanKeyboard, .cleanScreen, .batteryHealth: .shipping
         case .windowSnapping: .comingSoon
         case .cropAndLock, .workspaces: .pro
         }
