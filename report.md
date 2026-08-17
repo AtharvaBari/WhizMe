@@ -6,6 +6,29 @@ Each entry says what was wrong, what changed, and whether it was actually tested
 
 ---
 
+## 2026-08-17 — Space Mono for the welcome wordmark
+
+The "WhizMe" text in the launch animation now uses Space Mono Bold, and the temporary
+"Replay welcome animation" button has been removed from Settings.
+
+The font is **bundled with the app**, not borrowed from the system. It is installed on
+this Mac but not on anyone else's, and a missing custom font raises nothing — SwiftUI
+silently substitutes the system face. Left as-is it would have looked right for whoever
+built it and wrong for every user, which is the hardest kind of bug to notice.
+
+Verified properly rather than assumed: the app reports loading the font from *inside its
+own bundle*, not from the copy in the user font folder.
+
+**Caught a second silent failure while checking that.** The font was first placed in a
+`Fonts` subfolder, which is what the script build produced — but Xcode flattens resources
+into the Resources root, so under Xcode the font was never registered and quietly fell
+back. Invisible on this Mac, since Space Mono is installed system-wide. Both build systems
+now agree on one location, and both were confirmed loading the bundled file.
+
+Space Mono is SIL Open Font License 1.1, so its licence ships alongside it as required.
+
+---
+
 ## 2026-08-17 — Full-screen welcome, and Settings was broken
 
 Added the full-screen first-run sequence: the desktop dims, the logo assembles itself from

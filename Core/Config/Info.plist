@@ -35,6 +35,22 @@
 	<key>LSUIElement</key>
 	<true/>
 
+	<!-- Registers every font in Contents/Resources/Fonts at launch. The welcome uses
+	     Space Mono Bold, which is bundled rather than assumed: it is installed on the
+	     maintainer's Mac but not on anyone else's, and a missing custom font does not
+	     error — SwiftUI silently substitutes the system face, so the wordmark would
+	     quietly look wrong for every user and right for the person who shipped it.
+	     Space Mono is SIL Open Font License 1.1; see the OFL.txt beside it.
+
+	     The path is "." — Resources itself — rather than a "Fonts" subfolder, because
+	     Xcode flattens resources from a synchronized group into Resources root while
+	     build.sh could preserve any layout. Pointing at a subfolder made the two
+	     disagree, and an unregistered font does not error: Xcode-run builds quietly fell
+	     back to the system face, which looks correct on any Mac that happens to have
+	     Space Mono installed. "." is the one path both build systems agree on. -->
+	<key>ATSApplicationFontsPath</key>
+	<string>.</string>
+
 	<key>NSHumanReadableCopyright</key>
 	<string>MIT Licensed. Open source at github.com/AtharvaBari/WhizMe</string>
 

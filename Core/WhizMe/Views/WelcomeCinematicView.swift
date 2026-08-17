@@ -40,15 +40,29 @@ struct WelcomeCinematicView: View {
     /// Space between the settled logo and the wordmark.
     private static let gap: CGFloat = 34
 
+    /// Space Mono Bold, bundled in `Resources/Fonts` and registered by
+    /// `ATSApplicationFontsPath` in Info.plist.
+    ///
+    /// Falls back to the system face if registration ever fails. That is not
+    /// hypothetical: a missing custom font does not raise anything, it silently
+    /// substitutes — so the fallback is here to keep the *measurement* below honest
+    /// rather than to be pretty.
+    private static let titleNSFont: NSFont =
+        NSFont(name: "SpaceMono-Bold", size: titleSize)
+            ?? .systemFont(ofSize: titleSize, weight: .bold)
+
+    /// One font object drives both the measurement and the rendering, so the two can
+    /// never disagree — if they did, the slide would stop and leave the wordmark a few
+    /// points off centre.
+    private static let titleFont = Font(titleNSFont)
+
     /// Measured with AppKit rather than a `GeometryReader` pass.
     ///
     /// The offsets below have to be known in the same frame the slide starts, and a
     /// geometry read only lands on the *next* one — which showed as the wordmark
     /// snapping into position after the first frame of its own animation.
-    private static let titleWidth: CGFloat = {
-        let font = NSFont.systemFont(ofSize: titleSize, weight: .bold)
-        return ("WhizMe" as NSString).size(withAttributes: [.font: font]).width
-    }()
+    private static let titleWidth: CGFloat =
+        ("WhizMe" as NSString).size(withAttributes: [.font: titleNSFont]).width
 
     /// Where the logo sits once it has made room for the wordmark: half the wordmark
     /// block to the left, so logo and text together end up centred.
@@ -145,7 +159,7 @@ struct WelcomeCinematicView: View {
         // the left of the window and is clipped away completely.
         ZStack(alignment: .leading) {
             Text("WhizMe")
-                .font(.system(size: Self.titleSize, weight: .bold))
+                .font(Self.titleFont)
                 .foregroundStyle(.white)
                 .fixedSize()
                 .padding(.leading, Self.gap)

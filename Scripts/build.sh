@@ -133,6 +133,12 @@ if [ ! -f "$APP/Contents/Resources/Assets.car" ]; then
   exit 1
 fi
 
+echo "==> Copying bundled fonts"
+# Flattened into Resources root, matching ATSApplicationFontsPath="." — and matching
+# where Xcode puts them, so a font registers identically under either build system.
+cp "$ROOT/Core/WhizMe/Resources/Fonts/"*.ttf "$APP/Contents/Resources/"
+cp "$ROOT/Core/WhizMe/Resources/Fonts/OFL.txt" "$APP/Contents/Resources/"
+
 echo "==> Writing Info.plist"
 sed -e "s|\$(DEVELOPMENT_LANGUAGE)|en|g" \
     -e "s|\$(EXECUTABLE_NAME)|$EXECUTABLE|g" \
