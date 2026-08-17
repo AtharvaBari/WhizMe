@@ -124,7 +124,7 @@ struct MenuBarView: View {
         MenuActionRow(
             symbolName: WhizFeature.awake.symbolName,
             title: WhizFeature.awake.title,
-            detail: app.awake.statusDescription,
+            detail: app.awake.isActive ? app.awake.statusDescription : nil,
             isEnabled: app.preferences.isEnabled(.awake),
             action: nil
         ) {
@@ -161,7 +161,7 @@ struct MenuBarView: View {
         MenuActionRow(
             symbolName: WhizFeature.colorPicker.symbolName,
             title: WhizFeature.colorPicker.title,
-            detail: app.colorPicker.lastColor?.hex ?? WhizFeature.colorPicker.subtitle,
+            detail: app.colorPicker.lastColor?.hex,
             isEnabled: app.preferences.isEnabled(.colorPicker),
             action: { run(.colorPicker) }
         ) {
@@ -184,7 +184,7 @@ struct MenuBarView: View {
         MenuActionRow(
             symbolName: WhizFeature.textExtractor.symbolName,
             title: WhizFeature.textExtractor.title,
-            detail: app.ocr.lastError ?? WhizFeature.textExtractor.subtitle,
+            detail: app.ocr.lastError,
             isEnabled: app.preferences.isEnabled(.textExtractor),
             action: { run(.textExtractor) }
         ) {
@@ -202,7 +202,7 @@ struct MenuBarView: View {
         MenuActionRow(
             symbolName: WhizFeature.advancedPaste.symbolName,
             title: WhizFeature.advancedPaste.title,
-            detail: WhizFeature.advancedPaste.subtitle,
+            detail: nil,
             isEnabled: app.preferences.isEnabled(.advancedPaste),
             action: { run(.advancedPaste) }
         ) {
@@ -213,12 +213,12 @@ struct MenuBarView: View {
     private var clipboardHistoryRow: some View {
         MenuActionRow(
             symbolName: WhizFeature.clipboardHistory.symbolName,
-            // The count is the useful detail: it answers "is there anything in there"
-            // without opening the panel.
             title: WhizFeature.clipboardHistory.title,
+            // The count answers "is there anything in there" without opening the panel.
+            // Empty needs no line: the panel says so itself, in more room.
             detail: app.clipboardHistory.isEmpty
-                ? "Nothing copied yet"
-                : "\(app.clipboardHistory.entries.count) items · search and pin",
+                ? nil
+                : "\(app.clipboardHistory.entries.count) items",
             isEnabled: app.preferences.isEnabled(.clipboardHistory),
             action: { run(.clipboardHistory) }
         ) {
@@ -245,9 +245,7 @@ struct MenuBarView: View {
         MenuActionRow(
             symbolName: WhizFeature.cleanKeyboard.symbolName,
             title: WhizFeature.cleanKeyboard.title,
-            detail: app.cleanKeyboard.isCleaning
-                ? "Keyboard is off — click the overlay to stop"
-                : WhizFeature.cleanKeyboard.subtitle,
+            detail: app.cleanKeyboard.isCleaning ? "Keyboard is off — click the overlay to stop" : nil,
             action: { openSettings(showing: .cleanKeyboard) }
         ) {
             Image(systemName: "chevron.right")
@@ -260,9 +258,7 @@ struct MenuBarView: View {
         MenuActionRow(
             symbolName: WhizFeature.cleanScreen.symbolName,
             title: WhizFeature.cleanScreen.title,
-            detail: app.cleanScreen.isCleaning
-                ? "Screen is black — press Esc or Return"
-                : WhizFeature.cleanScreen.subtitle,
+            detail: app.cleanScreen.isCleaning ? "Screen is black — press Esc or Return" : nil,
             action: { openSettings(showing: .cleanScreen) }
         ) {
             Image(systemName: "chevron.right")
